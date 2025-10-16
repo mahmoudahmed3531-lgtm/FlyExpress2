@@ -139,7 +139,7 @@ function todayIsThursday(){ return new Date().getDay()===4; }
 function updateNote(left){
   noteEl.className='note';
   if(left>0){
-    noteEl.textContent=''; // مفيش رسالة تحذير
+    noteEl.textContent='';
     return;
   }
   if(todayIsThursday()){
@@ -156,7 +156,7 @@ function loadChances(){
   const cur=getThursdayKey();
   const saved=localStorage.getItem("key");
   let left=+localStorage.getItem("chances")||0;
-  if(saved!==cur){left=2;localStorage.setItem("key",cur);}
+  if(saved!==cur){left=10;localStorage.setItem("key",cur);} // 🔟 محاولات كل خميس
   localStorage.setItem("chances",left);
   leftEl.textContent=left;
   spinBtn.disabled=left<=0;
