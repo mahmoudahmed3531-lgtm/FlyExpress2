@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عجلة الحظ - Fly Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: 'Cairo', sans-serif;
+  background: radial-gradient(circle at center, #00111a, #001a2b 80%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+h1 {
+  margin-bottom: 15px;
+  color: #00ffae;
+  text-shadow: 0 0 15px #00ffaa;
+}
+#wheel {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  border: 10px solid #00ffaa;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 30px rgba(0,255,170,0.3);
+  transition: transform 5s cubic-bezier(0.17,0.67,0.83,0.67);
+}
+.slice {
+  width: 50%;
+  height: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 0% 0%;
+  background: conic-gradient(#06d6a0, #118ab2);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: bold;
+}
+#arrow {
+  width: 0;
+  height: 0;
+  border-left: 25px solid transparent;
+  border-right: 25px solid transparent;
+  border-top: 35px solid #ff0054;
+  margin-top: 15px;
+  animation: glow 1s infinite alternate;
+}
+@keyframes glow {
+  from { filter: drop-shadow(0 0 5px #ff004c); }
+  to { filter: drop-shadow(0 0 15px #ff004c); }
+}
+button {
+  margin-top: 20px;
+  background: #00ffaa;
+  color: #00111a;
+  font-weight: bold;
+  padding: 10px 25px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.3s;
+}
+button:hover {
+  background: #00ffcc;
+  transform: scale(1.05);
+}
+#result {
+  margin-top: 20px;
+  font-size: 20px;
+  color: #fffb96;
+  text-shadow: 0 0 10px #fff800;
+}
+</style>
+</head>
+<body>
+
+<h1>🎡 عجلة الحظ - Fly Express</h1>
+<div id="wheel">
+  <canvas id="canvas" width="300" height="300"></canvas>
+</div>
+<div id="arrow"></div>
+<button id="spin">لف العجلة 🎯</button>
+<p id="result"></p>
+
+<script>
+const options = ["0", "1", "2", "3", "حظ أوفر"];
+const colors = ["#00b4d8", "#48cae4", "#90e0ef", "#0077b6", "#ff0054"];
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const totalSlices = options.length;
+const arc = (2 * Math.PI) / totalSlices;
+let spinAngle = 0;
+let spinning = false;
+
+function drawWheel() {
+  for (let i = 0; i < totalSlices; i++) {
+    ctx.beginPath();
+    ctx.moveTo(150, 150);
+    ctx.arc(150, 150, 150, i * arc, (i + 1) * arc);
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    ctx.save();
+    ctx.translate(150, 150);
+    ctx.rotate(i * arc + arc / 2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 18px Cairo";
+    ctx.fillText(options[i], 130, 10);
+    ctx.restore();
+  }
+}
+drawWheel();
+
+let spins = JSON.parse(localStorage.getItem("spins")) || { last: null, count: 0 };
+const today = new Date();
+const weekDay = today.getDay(); // الخميس = 4
+
+if (weekDay === 4) {
+  // إعادة تعيين اللفات كل خميس
+  if (spins.last !== today.toDateString()) {
+    spins = { last: today.toDateString(), count: 0 };
+    localStorage.setItem("spins", JSON.stringify(spins));
+  }
+}
+
+document.getElementById("spin").addEventListener("click", () => {
+  if (spinning) return;
+  if (spins.count >= 2) {
+    document.getElementById("result").textContent = "انتهت محاولاتك اليوم 🎯";
+    return;
+  }
+
+  spinning = true;
+  spinAngle = Math.floor(Math.random() * 360) + 1800; // 5 لفات عشوائية
+  document.getElementById("wheel").style.transform = `rotate(${spinAngle}deg)`;
+
+  setTimeout(() => {
+    spinning = false;
+    spins.count++;
+    localStorage.setItem("spins", JSON.stringify(spins));
+    const index = Math.floor(((360 - (spinAngle % 360)) % 360) / (360 / totalSlices));
+    const prize = options[index];
+    document.getElementById("result").textContent = prize === "حظ أوفر"
+      ? "😅 حظ أوفر المرة الجاية!"
+      : `🎉 مبروك! كسبت ${prize} توصيلات مجانية 🚀`;
+  }, 5200);
+});
+</script>
+
+</body>
+</html>
