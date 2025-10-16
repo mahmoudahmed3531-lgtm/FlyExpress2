@@ -1,164 +1,216 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>عجلة الحظ - Fly Express</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600&display=swap" rel="stylesheet">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Fly Express — عجلة الحظ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: 'Cairo', sans-serif;
-  background: radial-gradient(circle at center, #00111a, #001a2b 80%);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  margin: 0;
-  overflow: hidden;
-}
-h1 {
-  margin-bottom: 15px;
-  color: #00ffae;
-  text-shadow: 0 0 15px #00ffaa;
-}
-#wheel {
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  border: 10px solid #00ffaa;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 0 30px rgba(0,255,170,0.3);
-  transition: transform 5s cubic-bezier(0.17,0.67,0.83,0.67);
-}
-.slice {
-  width: 50%;
-  height: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform-origin: 0% 0%;
-  background: conic-gradient(#06d6a0, #118ab2);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-weight: bold;
-}
-#arrow {
-  width: 0;
-  height: 0;
-  border-left: 25px solid transparent;
-  border-right: 25px solid transparent;
-  border-top: 35px solid #ff0054;
-  margin-top: 15px;
-  animation: glow 1s infinite alternate;
-}
-@keyframes glow {
-  from { filter: drop-shadow(0 0 5px #ff004c); }
-  to { filter: drop-shadow(0 0 15px #ff004c); }
-}
-button {
-  margin-top: 20px;
-  background: #00ffaa;
-  color: #00111a;
-  font-weight: bold;
-  padding: 10px 25px;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: 0.3s;
-}
-button:hover {
-  background: #00ffcc;
-  transform: scale(1.05);
-}
-#result {
-  margin-top: 20px;
-  font-size: 20px;
-  color: #fffb96;
-  text-shadow: 0 0 10px #fff800;
-}
+  :root{
+    --bg:#071824;
+    --panel:#0d2433;
+    --neon:#00ffaa;
+    --neon2:#12b5ff;
+    --muted:#a9c0cf;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;min-height:100dvh;
+    font-family:'Cairo',system-ui,sans-serif;
+    color:#e9f3fa;background:
+      radial-gradient(1100px 600px at 15% 15%, #0b1a27 0%, transparent 60%),
+      radial-gradient(1100px 600px at 85% 85%, #081420 0%, transparent 60%),
+      linear-gradient(160deg,#06131c,#081b27 60%,#06131c);
+  }
+
+  .wrap{max-width:680px;margin:0 auto;padding:24px}
+  h1{
+    text-align:center;margin:12px 0 22px;font-size:34px;letter-spacing:.5px;
+    text-shadow:0 0 18px rgba(18,181,255,.35);
+  }
+  h1 i{filter:drop-shadow(0 0 6px rgba(0,255,170,.45))}
+  .board{
+    margin:0 auto;background:rgba(255,255,255,.03);
+    border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(8px);
+    border-radius:22px;padding:24px;box-shadow:0 18px 40px rgba(0,0,0,.35)
+  }
+
+  .stage{position:relative;width:360px;height:360px;margin:0 auto}
+  /* العجلة نفسها */
+  .wheel{
+    width:100%;height:100%;border-radius:50%;
+    border:10px solid var(--neon);
+    box-shadow:0 0 24px rgba(0,255,170,.35), inset 0 0 28px rgba(18,181,255,.25);
+    background:
+      conic-gradient(
+        #0ea5e9 0deg 72deg,      /* 1 */
+        #a5f3fc 72deg 144deg,    /* 2 */
+        #0b61a4 144deg 216deg,   /* 3 */
+        #ff1f64 216deg 288deg,   /* حظ أوفر */
+        #0aa2a4 288deg 360deg    /* 0 */
+      );
+    transition:transform 6s cubic-bezier(.17,.8,.23,1.02);
+  }
+  /* السهم ثابت فوق وبيشاور لداخل الدائرة */
+  .pointer{
+    position:absolute;left:50%;top:-18px;transform:translateX(-50%);
+    width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;
+    border-bottom:22px solid #ff004c;filter:drop-shadow(0 0 8px rgba(255,0,76,.55));
+  }
+
+  .btn{
+    margin:18px auto 0;display:block;cursor:pointer;border:0;
+    padding:12px 22px;border-radius:999px;font-weight:800;font-size:18px;
+    color:#012430;background:linear-gradient(90deg,var(--neon),var(--neon2));
+    box-shadow:0 14px 28px rgba(0,255,170,.25);transition:transform .12s ease,opacity .12s ease;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  .btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.2)}
+
+  .info{margin-top:14px;text-align:center;color:var(--muted);font-weight:700}
+  .badge{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:999px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}
+  .result{margin-top:18px;text-align:center;font-size:20px;font-weight:800}
+
+  .win{color:#00ffaa;text-shadow:0 0 12px rgba(0,255,170,.45)}
+  .lose{color:#ff7aa6;text-shadow:0 0 10px rgba(255,0,100,.35)}
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Fly Express – <span style="color:var(--neon)">عجلة الحظ</span> <i>🎡</i></h1>
 
-<h1>🎡 عجلة الحظ - Fly Express</h1>
-<div id="wheel">
-  <canvas id="canvas" width="300" height="300"></canvas>
-</div>
-<div id="arrow"></div>
-<button id="spin">لف العجلة 🎯</button>
-<p id="result"></p>
+    <div class="board">
+      <div class="stage">
+        <div id="wheel" class="wheel"></div>
+        <div class="pointer"></div>
+      </div>
+
+      <button id="spinBtn" class="btn">🎯 لف العجلة</button>
+
+      <div class="info">
+        لديك <span id="left" class="badge">–</span> محاولات. تتجدد المحاولات كل <b>خميس</b>.
+        <div id="thNote" style="margin-top:6px"></div>
+      </div>
+
+      <div id="result" class="result"></div>
+    </div>
+  </div>
 
 <script>
-const options = ["0", "1", "2", "3", "حظ أوفر"];
-const colors = ["#00b4d8", "#48cae4", "#90e0ef", "#0077b6", "#ff0054"];
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const totalSlices = options.length;
-const arc = (2 * Math.PI) / totalSlices;
-let spinAngle = 0;
-let spinning = false;
+(() => {
+  // ————————————————————————————————
+  //   إعداد الشرائح (0 ، 1 ، 2 ، 3 ، حظ أوفر)
+  // ————————————————————————————————
+  const slices = ["1","2","3","حظ أوفر","0"]; // ترتيب الألوان في الCSS مطابق
+  const arc = 360 / slices.length;           // 72 درجة لكل شريحة
+  const wheel = document.getElementById('wheel');
+  const spinBtn = document.getElementById('spinBtn');
+  const resultEl = document.getElementById('result');
+  const leftEl = document.getElementById('left');
+  const thNote = document.getElementById('thNote');
 
-function drawWheel() {
-  for (let i = 0; i < totalSlices; i++) {
-    ctx.beginPath();
-    ctx.moveTo(150, 150);
-    ctx.arc(150, 150, 150, i * arc, (i + 1) * arc);
-    ctx.fillStyle = colors[i];
-    ctx.fill();
-    ctx.save();
-    ctx.translate(150, 150);
-    ctx.rotate(i * arc + arc / 2);
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#fff";
-    ctx.font = "bold 18px Cairo";
-    ctx.fillText(options[i], 130, 10);
-    ctx.restore();
-  }
-}
-drawWheel();
-
-let spins = JSON.parse(localStorage.getItem("spins")) || { last: null, count: 0 };
-const today = new Date();
-const weekDay = today.getDay(); // الخميس = 4
-
-if (weekDay === 4) {
-  // إعادة تعيين اللفات كل خميس
-  if (spins.last !== today.toDateString()) {
-    spins = { last: today.toDateString(), count: 0 };
-    localStorage.setItem("spins", JSON.stringify(spins));
-  }
-}
-
-document.getElementById("spin").addEventListener("click", () => {
-  if (spinning) return;
-  if (spins.count >= 2) {
-    document.getElementById("result").textContent = "انتهت محاولاتك اليوم 🎯";
-    return;
+  // ————————————————————————————————
+  //   نظام المحاولات: محاولتان تتجدد كل خميس
+  // ————————————————————————————————
+  function thursdayKeyFor(date=new Date()){
+    // نحسب خميس هذا الأسبوع بنظام ISO (الإثنين بداية الأسبوع)
+    const d = new Date(date); d.setHours(0,0,0,0);
+    const dayMon0 = (d.getDay()+6)%7; // 0=Mon..6=Sun
+    const monday = new Date(d); monday.setDate(d.getDate()-dayMon0);
+    const thursday = new Date(monday); thursday.setDate(monday.getDate()+3);
+    return thursday.toISOString().slice(0,10); // YYYY-MM-DD
   }
 
-  spinning = true;
-  spinAngle = Math.floor(Math.random() * 360) + 1800; // 5 لفات عشوائية
-  document.getElementById("wheel").style.transform = `rotate(${spinAngle}deg)`;
+  const KEY = 'spin_thursday_key';
+  const LEFT = 'spins_left';
 
-  setTimeout(() => {
-    spinning = false;
-    spins.count++;
-    localStorage.setItem("spins", JSON.stringify(spins));
-    const index = Math.floor(((360 - (spinAngle % 360)) % 360) / (360 / totalSlices));
-    const prize = options[index];
-    document.getElementById("result").textContent = prize === "حظ أوفر"
-      ? "😅 حظ أوفر المرة الجاية!"
-      : `🎉 مبروك! كسبت ${prize} توصيلات مجانية 🚀`;
-  }, 5200);
-});
+  function loadQuota(){
+    const currentKey = thursdayKeyFor();
+    const savedKey = localStorage.getItem(KEY);
+    let left = Number(localStorage.getItem(LEFT) || 0);
+
+    if (savedKey !== currentKey){
+      // خميس جديد -> ندي محاولتين
+      left = 2;
+      localStorage.setItem(KEY, currentKey);
+      localStorage.setItem(LEFT, String(left));
+    }
+    updateUI(left);
+    return left;
+  }
+
+  function saveQuota(left){
+    localStorage.setItem(LEFT, String(left));
+    updateUI(left);
+  }
+
+  function updateUI(left){
+    leftEl.textContent = left;
+    const today = new Date();
+    const isThursday = (today.getDay() === 4); // 0 Sun .. 4 Thu
+    thNote.innerHTML = isThursday
+      ? "اليوم الخميس — تم فتح المحاولات لهذا الأسبوع ✅"
+      : "ستتجدد المحاولات تلقائيًا يوم الخميس القادم ⏳";
+
+    spinBtn.disabled = (left <= 0);
+  }
+
+  let spinsLeft = loadQuota();
+  let isSpinning = false;
+
+  // ————————————————————————————————
+  //   اللف واختيار الشريحة المطلوب
+  // ————————————————————————————————
+  function spin(){
+    if (isSpinning) return;
+    if (spinsLeft <= 0){
+      resultEl.innerHTML = "<span class='lose'>⚠️ خلصت محاولاتك — استنى للخميس القادم</span>";
+      return;
+    }
+    isSpinning = true;
+    spinBtn.disabled = true;
+    resultEl.textContent = "";
+
+    // نختار شريحة عشوائيّة (توزيع متساوي)
+    const index = Math.floor(Math.random() * slices.length);
+
+    // نخلي منتصف الشريحة ييجي تحت السهم (السهم فوق)
+    // conic-gradient يبدأ من 0deg على يمين الدائرة -> نطرح 90deg عشان نطابق أعلى الدائرة.
+    const targetDeg = (index * arc) + (arc / 2);     // منتصف الشريحة
+    const turns = 6; // عدد لفات كاملة شكلياً
+    const finalRotation = (turns * 360) + targetDeg - 90;
+
+    wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+    // بعد الانيميشن نعلن النتيجة
+    setTimeout(() => {
+      const label = slices[index];
+      let msg = "";
+
+      if (label === "حظ أوفر"){
+        msg = "<span class='lose'>😔 حظ أوفر! جرب تاني</span>";
+      }else{
+        const n = Number(label);
+        if (n === 0){
+          msg = "<span class='win'>🎁 مبروك! كسبت 0 توصيلات (ولا يهمك جرب تاني) </span>";
+        }else{
+          const word = (n===1) ? "توصيلة" : "توصيلات";
+          msg = `<span class='win'>🎉 مبروك! كسبت ${n} ${word} مجانية</span>`;
+        }
+      }
+      resultEl.innerHTML = msg;
+
+      // نقص المحاولات
+      spinsLeft = Math.max(0, spinsLeft - 1);
+      saveQuota(spinsLeft);
+
+      isSpinning = false;
+    }, 6100); // أطول شوية من transition
+  }
+
+  spinBtn.addEventListener('click', spin);
+})();
 </script>
-
 </body>
 </html>
