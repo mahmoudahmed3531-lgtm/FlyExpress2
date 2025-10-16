@@ -1,143 +1,374 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Fly Express — Whack-a-Parcel</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Whack-a-Parcel — Fly Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1:#071a25; --bg2:#0b2232; --ring:#00ffaa; --ring2:#00a8ff;
-    --glass:rgba(255,255,255,.06); --border:rgba(255,255,255,.10);
-    --text:#e9f2f7; --muted:#b7c3cc; --win:#21e6a7; --lose:#ff5c8a;
+    --glass: rgba(255,255,255,.06);
+    --card: rgba(255,255,255,.08);
+    --muted:#b8c0c9;
+    --ok:#00ffaa;
+    --warn:#ffd166;
+    --bad:#ff4d7a;
+    --title:#21f5b3;
   }
-  *{box-sizing:border-box} html,body{height:100%}
+  *{box-sizing:border-box}
   body{
-    margin:0; font-family:"Cairo",system-ui,sans-serif; color:var(--text);
+    margin:0; font-family:'Cairo',system-ui,sans-serif; color:#eaf1f6;
+    min-height:100svh; display:flex; align-items:center; justify-content:center; padding:22px;
     background:
-      radial-gradient(1100px 600px at 10% 10%, #0d2435 0%, transparent 60%),
-      radial-gradient(1000px 500px at 90% 90%, #051821 0%, transparent 60%),
-      conic-gradient(from 0deg at 50% 50%, #06131d, #0a2233, #0e2f45, #0a2233, #06131d);
+      radial-gradient(1100px 600px at 10% 10%, #062133 0%, transparent 65%),
+      radial-gradient(1100px 600px at 90% 90%, #00131c 0%, transparent 65%),
+      conic-gradient(from 0deg at 50% 50%, #021018, #07273a, #031c2b, #021018);
     background-size:140% 140%,140% 140%,200% 200%;
-    animation:bgShift 20s ease-in-out infinite; padding:18px;
+    animation: bg1 16s ease-in-out infinite, bg2 18s ease-in-out infinite, hue 32s linear infinite;
   }
-  @keyframes bgShift{0%,100%{background-position:10% 10%,90% 90%,0% 50%}50%{background-position:24% 18%,76% 82%,100% 50%}}
-  .wrap{max-width:520px;margin:0 auto}
-  header{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-  h1{margin:0;font-size:26px;font-weight:900}
-  .sub{width:100%;color:var(--muted);margin-top:6px;font-weight:700}
+  @keyframes bg1{0%,100%{background-position:10% 10%,90% 90%,0% 50%}50%{background-position:30% 20%,70% 80%,100% 50%}}
+  @keyframes bg2{0%,100%{background-position:10% 10%,90% 90%,0% 50%}50%{background-position:15% 25%,85% 75%,100% 50%}}
+  @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
 
-  .card{margin-top:12px;background:var(--glass);border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:0 18px 50px rgba(0,0,0,.35);position:relative;overflow:hidden}
-  .hud{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-bottom:10px}
-  .badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:12px;font-weight:800;display:flex;align-items:center;gap:6px}
-  .btn{border:0;border-radius:999px;padding:10px 18px;font-weight:900;cursor:pointer;color:#012;background:linear-gradient(135deg,var(--ring),var(--ring2));box-shadow:0 12px 26px rgba(0,0,0,.35)}
-  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .frame{
+    width:100%; max-width:820px; border-radius:24px; padding:22px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 18px 50px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  h1{
+    margin:0 0 10px; font-size:34px; font-weight:900; color:#fff; text-align:center;
+  }
+  h1 .brand{color:var(--title)}
+  .sub{margin:6px auto 18px; text-align:center; color:#cfe2ee}
+  .stats{display:flex; gap:12px; justify-content:space-between; flex-wrap:wrap}
+  .stat{
+    flex:1 1 160px; background:var(--glass); border:1px solid rgba(255,255,255,.08);
+    padding:12px 14px; border-radius:16px; text-align:center; box-shadow:0 10px 24px rgba(0,0,0,.25);
+  }
+  .stat .v{font-size:22px; font-weight:900}
+  .stat .k{font-size:13px; color:var(--muted)}
 
-  .board{width:100%;aspect-ratio:1/1;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .hole{position:relative;background:linear-gradient(180deg,#0b1720,#0a1016);border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;box-shadow:inset 0 10px 24px rgba(0,0,0,.45), 0 10px 30px rgba(0,0,0,.25)}
-  .lip{position:absolute;inset:auto 0 0 0;height:38%;background:radial-gradient(120% 100% at 50% 100%, rgba(0,0,0,.7), transparent 70%);pointer-events:none}
+  .board{
+    margin-top:14px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.07);
+    border-radius:18px; padding:16px;
+  }
+  .row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .hole{
+    position:relative; height:140px; border-radius:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.35));
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow: inset 0 14px 28px rgba(0,0,0,.35), 0 14px 32px rgba(0,0,0,.3);
+    overflow:hidden; touch-action:none;
+  }
   .target{
-    position:absolute;left:50%;bottom:-120px;transform:translateX(-50%) scale(.9);
-    width:90px;height:90px;display:grid;place-items:center;border-radius:16px;color:#fff;
-    font-size:42px;font-weight:900;text-shadow:0 4px 10px rgba(0,0,0,.35);
-    transition:bottom .18s ease,transform .18s ease,filter .18s ease;
-    user-select:none;-webkit-user-select:none;touch-action:none;
+    position:absolute; left:50%; bottom:-120px; transform:translateX(-50%);
+    width:86px; height:86px; border-radius:18px; line-height:86px; text-align:center; font-size:40px;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,255,255,.05));
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow: 0 12px 26px rgba(0,0,0,.35);
+    transition: bottom .12s ease, transform .12s ease;
+    user-select:none;
   }
-  .target.good{background:linear-gradient(135deg,#12d1ff,#2ef7b7);box-shadow:0 10px 20px rgba(0,200,255,.25)}
-  .target.bad{background:linear-gradient(135deg,#ff5a7c,#ff995a);box-shadow:0 10px 20px rgba(255,90,124,.25)}
-  .target.up{bottom:18px;transform:translateX(-50%) scale(1)}
-  .hit{animation:pop .18s ease}
-  @keyframes pop{from{transform:translateX(-50%) scale(.92);filter:brightness(1.1)}to{transform:translateX(-50%) scale(1)}}
-  .shake{animation:shake .3s linear}
-  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  .target.up{ bottom:22px; }
+  .target.hit{ animation: pop .18s ease; }
+  @keyframes pop{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.1)}100%{transform:translateX(-50%) scale(1)}}
+  .hole.shake{ animation: shake .18s ease; }
+  @keyframes shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
 
-  .overlay{position:absolute;inset:0;display:grid;place-items:center;text-align:center;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);color:#fff}
-  .overlay .box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;width:min(90%,420px);box-shadow:0 20px 50px rgba(0,0,0,.35)}
-  .countdown{font-size:46px;font-weight:900;margin:6px 0 0}
-  .result{margin-top:10px;text-align:center;font-size:20px;font-weight:900}
-  .result.win{color:var(--win)} .result.lose{color:var(--lose)}
-  .claim{margin-top:10px;display:none;justify-content:center}
-  .wa{background:#25d366;color:#fff;border:0;border-radius:999px;padding:10px 16px;font-weight:900;cursor:pointer;box-shadow:0 12px 26px rgba(0,0,0,.35)}
-  .hole,.target,.board{-webkit-tap-highlight-color:rgba(0,0,0,0)}
+  .actions{display:flex; gap:12px; justify-content:center; margin:14px 0 4px}
+  .btn{
+    background:linear-gradient(90deg,#00ffaa,#00a8ff); color:#001316; font-weight:900;
+    padding:10px 18px; border:none; border-radius:999px; cursor:pointer;
+    box-shadow:0 10px 28px rgba(0,255,170,.28); transition:transform .1s ease; font-size:16px;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:linear-gradient(90deg,#d3f3ff,#b4ffd0); color:#003b35}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+
+  .result{margin:12px 0 4px; text-align:center; font-weight:900}
+  .result.win{color:var(--ok)} .result.lose{color:var(--bad)}
+
+  /* Overlay بداية اللعبة */
+  #overlay{
+    position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.5); backdrop-filter: blur(3px); z-index:30;
+  }
+  .startBox{
+    background:rgba(10,20,28,.9); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:22px; text-align:center;
+    box-shadow:0 24px 50px rgba(0,0,0,.45); width:min(420px,92vw);
+  }
+  #cd{font-size:42px; font-weight:900; margin-top:10px; color:#fff}
+
+  /* صندوق المطالبة بالجائزة */
+  #claimBox{display:none; gap:10px; justify-content:center; margin-top:10px}
+  .note{color:var(--muted); text-align:center; font-weight:700; margin-top:6px}
+
+  @media(max-width:520px){
+    .hole{height:120px} .target{width:78px;height:78px;line-height:78px;font-size:36px}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>📦 Whack-a-Parcel — <span style="color:var(--ring)">Fly Express</span></h1>
-    <div class="sub">اضرب الطرد الصح (+100) وتجنب المزيف (−50). عندك 30 ثانية. هات <b>2500+</b> نقطة واكسب! 🎁</div>
-  </header>
 
-  <div class="card">
-    <div class="hud">
-      <div class="badge">النقاط: <span id="score">0</span></div>
-      <div class="badge">الوقت: <span id="time">30</span>s</div>
-      <div class="badge">أعلى نتيجة: <span id="best">0</span></div>
-      <button id="startBtn" class="btn">🚀 ابدأ</button>
+<div class="frame">
+  <h1><span class="brand">Fly Express</span> — Whack-a-Parcel</h1>
+  <div class="sub">اضرب الطرد الصح <b>(+100)</b> وتجنّب المزيف <b>(−50)</b>. عندك <b>30 ثانية</b>. الهدف: <b>4000+</b> نقطة 🎁</div>
+
+  <div class="stats">
+    <div class="stat"><div class="v" id="time">30</div><div class="k">الوقت (ث)</div></div>
+    <div class="stat"><div class="v" id="score">0</div><div class="k">النقاط</div></div>
+    <div class="stat"><div class="v" id="best">0</div><div class="k">أعلى نتيجة</div></div>
+    <div class="stat"><button class="btn" id="startBtn">ابدأ 🚀</button></div>
+  </div>
+
+  <div class="board">
+    <div class="row">
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
     </div>
 
-    <div class="board" id="board" aria-label="لوحة اللعبة">
-      <!-- 9 حفر -->
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
-      <div class="hole"><div class="target"></div><div class="lip"></div></div>
+    <div class="actions">
+      <button class="btn secondary" id="infoBtn">إزاي أكسب؟</button>
+      <button class="btn" id="beginBtn" style="display:none">ابدأ الآن</button>
     </div>
 
-    <div id="overlay" class="overlay">
-      <div class="box">
-        <div style="font-weight:900;font-size:22px">اضرب الطرد الصح! ⏱️ 30 ثانية</div>
-        <div style="color:#cfe1ee;margin-top:6px">الطرد الصح = +100 — المزيف = −50</div>
-        <div style="color:#9dd6ff;margin-top:6px">هات 2500 نقطة أو أكثر لتظهر جائزة واتساب</div>
-        <button id="beginBtn" class="btn" style="margin-top:10px">ابدأ الآن</button>
-        <div id="cd" class="countdown" style="display:none">3</div>
-      </div>
+    <div id="claimBox">
+      <a class="btn" id="waBtn" href="#" target="_blank" rel="noopener">اطلب جائزتك عبر واتساب 🎁</a>
     </div>
 
     <div id="final" class="result"></div>
-    <div class="claim" id="claimBox">
-      <a id="waBtn" class="wa" target="_blank" rel="noopener">📲 اطلب جائزتك على واتساب</a>
+    <div class="note">نصيحة: الضغط على فتحة فاضية يخصم نقاط!</div>
+  </div>
+</div>
+
+<!-- شاشة البداية -->
+<div id="overlay">
+  <div class="startBox">
+    <div style="font-weight:900;font-size:22px;margin-bottom:6px">جاهز تبدأ؟</div>
+    <div style="color:#cfe2ee">هيظهر عداد 3..1.. انطلق — فعّل الصوت لو تحب تأثيرات!</div>
+    <div id="cd">3</div>
+    <div style="margin-top:12px">
+      <button class="btn" id="goBtn">ابدأ</button>
     </div>
   </div>
 </div>
 
 <script>
-const GAME_DURATION=30,WIN_THRESHOLD=2500,GOOD_SCORE=100,BAD_SCORE=-50,GRACE_MS=150;
-const holes=[...document.querySelectorAll(".hole")];
-const scoreEl=q("#score"),bestEl=q("#best"),timeEl=q("#time"),overlay=q("#overlay"),
-beginBtn=q("#beginBtn"),cdEl=q("#cd"),finalEl=q("#final"),claimBox=q("#claimBox"),waBtn=q("#waBtn");
-function q(s){return document.querySelector(s);}
-let score=0,best=parseInt(localStorage.getItem("wap_best")||"0"),playing=false,timeLeft=GAME_DURATION;
-let spawnTimer,tickTimer;bestEl.textContent=best;
-let AC,ctx,outGain;
-function audioInit(){if(ctx)return;AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=new AC();outGain=ctx.createGain();outGain.gain.value=.15;outGain.connect(ctx.destination);}
-function beep(f=800,d=.08,t="square"){if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(outGain);const s=ctx.currentTime;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.6,s+.01);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.01);}
-holes.forEach(h=>{const t=h.querySelector(".target");t.dataset.state="down";t.dataset.kind="good";t.dataset.hit="0";t.dataset.graceUntil="0";
-const tap=e=>{e.preventDefault();if(!playing)return;const wasUp=t.dataset.state==="up"||Date.now()<+t.dataset.graceUntil;if(!wasUp)return;if(t.dataset.hit==="1")return;t.dataset.hit="1";t.dataset.state="down";t.classList.remove("up");t.classList.add("hit");setTimeout(()=>t.classList.remove("hit"),180);setTimeout(()=>t.dataset.hit="0",10);
-if(t.dataset.kind==="good"){score+=GOOD_SCORE;beep(900,.07,"square");}else{score=Math.max(0,score+BAD_SCORE);h.classList.add("shake");beep(180,.12,"sawtooth");setTimeout(()=>h.classList.remove("shake"),250);}
-scoreEl.textContent=score;};
-t.addEventListener("pointerdown",tap);h.addEventListener("pointerdown",e=>{if(e.target===h||e.target.classList.contains("lip"))tap(e);});});
-function randomUp(){const avail=holes.filter(h=>h.querySelector(".target").dataset.state==="down");if(!avail.length)return;
-const h=avail[Math.floor(Math.random()*avail.length)],t=h.querySelector(".target");const badRate=.2+Math.min(.25,(GAME_DURATION-timeLeft)/GAME_DURATION*.25);const isBad=Math.random()<badRate;
-t.dataset.kind=isBad?"bad":"good";t.textContent=isBad?"💣":"📦";t.classList.toggle("good",!isBad);t.classList.toggle("bad",isBad);
-t.dataset.hit="0";t.dataset.state="up";t.classList.add("up");
-const raw=800-Math.min(500,(GAME_DURATION-timeLeft)*12),visible=Math.max(420,raw);
-setTimeout(()=>{if(t.dataset.state==="up"){t.dataset.state="down";t.classList.remove("up");t.dataset.graceUntil=String(Date.now()+GRACE_MS);setTimeout(()=>{t.dataset.hit="0";t.dataset.graceUntil="0";},GRACE_MS+30);}},visible);}
-function startGame(){if(playing)return;playing=true;score=0;timeLeft=GAME_DURATION;scoreEl.textContent="0";timeEl.textContent=timeLeft;finalEl.textContent="";finalEl.className="result";claimBox.style.display="none";
-spawnTimer=setInterval(randomUp,450);tickTimer=setInterval(()=>{timeLeft--;timeEl.textContent=timeLeft;if(timeLeft<=0)endGame();},1000);}
-function endGame(){clearInterval(spawnTimer);clearInterval(tickTimer);playing=false;best=Math.max(best,score);localStorage.setItem("wap_best",best);bestEl.textContent=best;
-if(score>=WIN_THRESHOLD){finalEl.textContent=`🎉 مبروك! حققت ${score} نقطة — تقدر تطلب جائزتك`;finalEl.classList.add("win");
-const msg=encodeURIComponent(`أنا كسبت توصيله مجانية في لعبة Whack-a-Parcel — درجتي: ${score}`);waBtn.href=`https://wa.me/201017908076?text=${msg}`;claimBox.style.display="flex";beep(660,.12,"sine");setTimeout(()=>beep(990,.14,"sine"),120);}
-else{finalEl.textContent=`انتهى الوقت! درجتك: ${score} — حاول توصل لـ ${WIN_THRESHOLD} 🎯`;finalEl.classList.add("lose");beep(180,.14,"sawtooth");}}
-beginBtn.addEventListener("click",()=>{audioInit();beginBtn.style.display="none";cdEl.style.display="block";let n=3;cdEl.textContent=n;const iv=setInterval(()=>{n--;cdEl.textContent=n>0?n:"انطلق!";if(n<=0){clearInterval(iv);setTimeout(()=>{overlay.style.display="none";startGame();},300);}},700);});
-document.querySelector("#startBtn").addEventListener("click",()=>{if(playing)return;overlay.style.display="grid";beginBtn.style.display="inline-block";cdEl.style.display="none";});
+/* ========= إعدادات عامة ========= */
+const GAME_DURATION = 30;        // مدة اللعبة بالثواني
+const WIN_THRESHOLD = 4000;      // الشرط الجديد للفوز
+
+// نقاط الضرب
+const GOOD_SCORE = 100;
+const BAD_SCORE  = -50;
+const EMPTY_TAP_PENALTY = -30;   // خصم عند الضغطة في فتحة فاضية
+
+// منحنيات الصعوبة (بتزيد كل ما الوقت يقل)
+const DIFF = {
+  baseSpawn: 480,     // ميللي ثانية بين محاولات السبون في بداية اللعبة
+  minSpawn:  240,     // أقل زمن سبون في آخر اللعبة
+  baseVisible: 650,   // مدة بقاء الهدف ظاهر في البداية
+  minVisible: 300,    // أقل مدة بقاء في آخر اللعبة
+  badStart: 0.25,     // نسبة القنابل في البداية
+  badEnd:   0.55,     // نسبة القنابل في آخر اللعبة
+  maxConcurrentStart: 1,
+  maxConcurrentEnd:   3,
+  shrinkStart: 1.00,  // حجم الهدف في البداية (scale)
+  shrinkEnd:   0.82,  // بيصغر شوية في الآخر
+  graceMs: 150        // مهلة الأمان بعد الاختفاء
+};
+
+/* ========= عناصر DOM ========= */
+const holes   = [...document.querySelectorAll(".hole")];
+const scoreEl = document.querySelector("#score");
+const bestEl  = document.querySelector("#best");
+const timeEl  = document.querySelector("#time");
+const overlay = document.querySelector("#overlay");
+const startBtn= document.querySelector("#startBtn");
+const beginBtn= document.querySelector("#beginBtn");
+const goBtn   = document.querySelector("#goBtn");
+const cdEl    = document.querySelector("#cd");
+const finalEl = document.querySelector("#final");
+const claimBox= document.querySelector("#claimBox");
+const waBtn   = document.querySelector("#waBtn");
+const infoBtn = document.querySelector("#infoBtn");
+
+/* ========= صوتيات بسيطة ========= */
+let ctx, AC, outGain;
+function audioInit(){ if(ctx) return;
+  AC = window.AudioContext||window.webkitAudioContext; if(!AC) return;
+  ctx = new AC(); outGain = ctx.createGain(); outGain.gain.value=.18; outGain.connect(ctx.destination);
+}
+function beep(f=800,d=.08,t="square"){ if(!ctx) return;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type=t; o.frequency.value=f; o.connect(g); g.connect(outGain);
+  const s=ctx.currentTime; g.gain.setValueAtTime(.0001,s);
+  g.gain.exponentialRampToValueAtTime(.6,s+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,s+d);
+  o.start(s); o.stop(s+d+.01);
+}
+
+/* ========= حالة اللعبة ========= */
+let score=0, best=parseInt(localStorage.getItem("wap_best")||"0");
+let playing=false, timeLeft=GAME_DURATION;
+let spawnLoop, tickTimer;
+bestEl.textContent = best;
+
+/* ========= تهيئة الفتحات ========= */
+holes.forEach(h=>{
+  const t=h.querySelector(".target");
+  t.dataset.state="down"; t.dataset.kind="good";
+  t.dataset.hit="0"; t.dataset.graceUntil="0";
+
+  const hit = (kind)=>{
+    if(kind==="good"){ score+=GOOD_SCORE; beep(920,.07,"square"); }
+    else{ score=Math.max(0,score+BAD_SCORE); h.classList.add("shake"); beep(180,.12,"sawtooth"); setTimeout(()=>h.classList.remove("shake"),250); }
+    scoreEl.textContent=score;
+  };
+
+  // ضغطة على الهدف
+  const onTap = (e)=>{
+    e.preventDefault(); if(!playing) return;
+    const wasUp = t.dataset.state==="up" || Date.now()<+t.dataset.graceUntil;
+    if(!wasUp) return;
+    if(t.dataset.hit==="1") return;
+    t.dataset.hit="1";
+    t.dataset.state="down"; t.classList.remove("up");
+    t.classList.add("hit"); setTimeout(()=>t.classList.remove("hit"),180);
+    setTimeout(()=>t.dataset.hit="0",10);
+    hit(t.dataset.kind);
+  };
+
+  // ضغطة على الفتحة نفسها (لو فاضية نخصم)
+  const onHoleTap = (e)=>{
+    if(!playing) return;
+    if(t.dataset.state!=="up" && Date.now()>+t.dataset.graceUntil){
+      score=Math.max(0,score+EMPTY_TAP_PENALTY);
+      scoreEl.textContent=score;
+      h.classList.add("shake"); beep(220,.08,"triangle");
+      setTimeout(()=>h.classList.remove("shake"),180);
+    } else {
+      onTap(e);
+    }
+  };
+
+  t.addEventListener("pointerdown", onTap);
+  h.addEventListener("pointerdown", onHoleTap);
+});
+
+/* ========= صعوبة متدرجة ========= */
+const prog = ()=> 1 - (timeLeft/GAME_DURATION); // 0 → 1
+function difficultyNow(){
+  const p = prog();
+  return {
+    spawn:   Math.round( DIFF.baseSpawn   - (DIFF.baseSpawn - DIFF.minSpawn)*p ),
+    visible: Math.round( DIFF.baseVisible - (DIFF.baseVisible - DIFF.minVisible)*p ),
+    badRate: DIFF.badStart + (DIFF.badEnd - DIFF.badStart)*p,
+    maxConcurrent: Math.round( DIFF.maxConcurrentStart + (DIFF.maxConcurrentEnd - DIFF.maxConcurrentStart)*p ),
+    scale: DIFF.shrinkStart - (DIFF.shrinkStart - DIFF.shrinkEnd)*p
+  };
+}
+
+function spawnLoopTick(){
+  if(!playing) return;
+  const {spawn, visible, badRate, maxConcurrent, scale} = difficultyNow();
+
+  // كام هدف ظاهر الآن؟
+  const ups = holes.filter(h=>h.querySelector(".target").dataset.state==="up");
+  const canSpawn = Math.max(0, maxConcurrent - ups.length);
+
+  for(let i=0; i<canSpawn; i++){
+    const downHoles = holes.filter(h=>h.querySelector(".target").dataset.state==="down");
+    if(!downHoles.length) break;
+    const h = downHoles[Math.floor(Math.random()*downHoles.length)];
+    const t = h.querySelector(".target");
+
+    const isBad = Math.random() < badRate;
+    t.dataset.kind = isBad ? "bad" : "good";
+    t.textContent  = isBad ? "💣" : "📦";
+    t.style.transform = `translateX(-50%) scale(${scale})`;
+
+    t.dataset.hit="0";
+    t.dataset.state="up";
+    t.classList.add("up");
+
+    setTimeout(()=>{
+      if(t.dataset.state==="up"){
+        t.dataset.state="down";
+        t.classList.remove("up");
+        t.dataset.graceUntil = String(Date.now()+DIFF.graceMs);
+        setTimeout(()=>{ t.dataset.hit="0"; t.dataset.graceUntil="0"; }, DIFF.graceMs+30);
+      }
+    }, visible);
+  }
+
+  spawnLoop = setTimeout(spawnLoopTick, spawn);
+}
+
+/* ========= بداية/نهاية ========= */
+function startGame(){
+  if(playing) return;
+  playing = true;
+  score = 0; timeLeft = GAME_DURATION;
+  scoreEl.textContent="0"; timeEl.textContent=timeLeft;
+  finalEl.textContent=""; finalEl.className="result"; claimBox.style.display="none";
+
+  spawnLoopTick();
+  tickTimer = setInterval(()=>{
+    timeLeft--; timeEl.textContent=timeLeft;
+    if(timeLeft<=0) endGame();
+  },1000);
+}
+
+function endGame(){
+  clearTimeout(spawnLoop); clearInterval(tickTimer); playing=false;
+  best = Math.max(best, score); localStorage.setItem("wap_best", best); bestEl.textContent=best;
+
+  if(score>=WIN_THRESHOLD){
+    finalEl.textContent=`🎉 مبروك! درجتك ${score} — تقدر تطلب جائزتك 🎁`;
+    finalEl.classList.add("win");
+    const msg=encodeURIComponent(`أنا كسبت توصيله مجانية في لعبة Whack-a-Parcel — درجتي: ${score}`);
+    waBtn.href=`https://wa.me/201017908076?text=${msg}`; claimBox.style.display="flex";
+    beep(660,.12,"sine"); setTimeout(()=>beep(990,.14,"sine"),120);
+  } else {
+    finalEl.textContent=`انتهى الوقت! درجتك: ${score} — معلش حاول تاني يمكن تكسب 😂`;
+    finalEl.classList.add("lose"); beep(180,.14,"sawtooth");
+  }
+}
+
+/* ========= واجهة البداية ========= */
+startBtn.addEventListener("click",()=>{
+  if(playing) return;
+  overlay.style.display="grid";
+  beginBtn.style.display="inline-block";
+  document.querySelector("#cd").style.display="none";
+});
+beginBtn.addEventListener("click",()=>{
+  audioInit();
+  beginBtn.style.display="none";
+  document.querySelector("#cd").style.display="block";
+  let n=3; cdEl.textContent=n;
+  const iv=setInterval(()=>{
+    n--; cdEl.textContent = n>0 ? n : "انطلق!";
+    if(n<=0){ clearInterval(iv); setTimeout(()=>{ overlay.style.display="none"; startGame(); },300); }
+  },700);
+});
+goBtn.addEventListener("click",()=>{ overlay.style.display="none"; startGame(); });
+
 ["pointerdown","touchstart","click"].forEach(ev=>addEventListener(ev,audioInit,{once:true}));
-document.addEventListener("touchmove",e=>{if(playing)e.preventDefault();},{passive:false});
+document.addEventListener("touchmove",e=>{ if(playing) e.preventDefault(); },{passive:false});
+
+infoBtn.addEventListener("click",()=>{
+  alert("اضرب 📦 +100 وتجنّب 💣 −50. الضغط على فتحة فاضية −30. عندك 30 ثانية — حاول تعدّي 4000 نقطة!");
+});
 </script>
 </body>
 </html>
