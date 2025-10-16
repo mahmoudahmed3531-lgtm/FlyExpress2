@@ -1,413 +1,153 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Fly Express — عجلة الحظ</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>عجلة الحظ - Fly Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --brand: #22d3ee;     /* سماوي */
-  --accent:#10b981;     /* أخضر */
-  --danger:#ef4444;     /* أحمر */
-  --ink:#eaf2ff;
-  --muted:#b6c2d6;
-  --glass: rgba(255,255,255,.06);
-  --ring: #27f7c4;
-  --shadow: 0 18px 55px rgba(0,0,0,.35);
-  --radius: 22px;
-}
-*{box-sizing:border-box}
-html,body{height:100%}
 body{
-  margin:0; color:var(--ink); font-family:"Cairo",system-ui,sans-serif;
-  /* خلفية RPG متحركة */
-  background:
-    radial-gradient(1200px 600px at 10% 10%, #0b1220 0%, transparent 60%),
-    radial-gradient(1200px 600px at 90% 90%, #06121a 0%, transparent 60%),
-    conic-gradient(from 0deg at 50% 50%, #07111a, #0e1f33, #0c2641, #0e1f33, #07111a);
-  background-size:140% 140%,140% 140%,200% 200%;
-  animation:bg1 16s ease-in-out infinite, bg2 22s ease-in-out infinite, hue 38s linear infinite;
+  margin:0;
+  font-family:'Cairo',sans-serif;
+  background:radial-gradient(circle at center,#021425,#052a3a);
+  color:#fff;
+  display:flex;flex-direction:column;align-items:center;min-height:100vh;
+  overflow-x:hidden;
 }
-@keyframes bg1{0%,100%{background-position:10% 10%,90% 90%, 0% 50%} 50%{background-position:28% 18%,72% 82%, 100% 50%}}
-@keyframes bg2{0%,100%{filter:brightness(1)} 50%{filter:brightness(1.05)}}
-@keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
-
-.container{
-  max-width:860px; margin:28px auto; padding:16px;
-}
-.card{
-  background: rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.06);
-  backdrop-filter: blur(8px);
-  border-radius: 26px;
-  padding: 20px;
-  box-shadow: var(--shadow);
-}
-
-.header{
-  display:flex; align-items:center; gap:12px; margin-bottom:6px;
-}
-.header h1{
-  margin:0; font-size:38px; font-weight:900; letter-spacing:.5px;
-}
-.badge{
-  margin-top:10px;
-  background: linear-gradient(90deg,#22c55e,#facc15,#fb923c);
-  color:#052e2b; font-weight:900;
-  padding:10px 16px; border-radius:999px; display:inline-flex; gap:10px; align-items:center;
-  box-shadow:0 12px 30px rgba(0,0,0,.25);
-}
-
-.sub{color:var(--muted); margin:10px 4px 14px; font-weight:700;}
-
-/* لوحة العجلة */
-.wheel-wrap{
-  position:relative; display:flex; flex-direction:column; align-items:center;
-}
-.canvas-wrap{
-  position:relative; width:min(520px, 90vw); aspect-ratio:1/1;
-  border-radius:50%;
-  padding:14px;
-  background: radial-gradient(circle at 50% 50%, rgba(39,247,196,.15), transparent 65%);
-}
-.ring{
-  position:absolute; inset:0; border-radius:50%;
-  box-shadow: 0 0 0 10px #0b0e10, 0 0 0 18px var(--ring);
-  pointer-events:none;
+h1{margin:20px 0 10px;font-size:28px;color:#4ef0cb;text-align:center;}
+p{margin:0 0 10px;color:#ccc;text-align:center;}
+#wheelContainer{
+  position:relative;width:300px;height:300px;margin-top:10px;
 }
 #wheel{
-  width:100%; height:100%; border-radius:50%;
-  box-shadow: inset 0 0 0 10px #0b0e10;
-  transition: transform 6s cubic-bezier(.15,.8,.1,1);
-  overflow:hidden;
-  position:relative;
+  width:100%;height:100%;border-radius:50%;
+  border:8px solid #27f7c4;
+  box-shadow:0 0 15px #27f7c4;
+  transition:transform 5s cubic-bezier(.2,.9,.1,1);
+  background:conic-gradient(
+    #007bff 0deg 72deg,
+    #00cfff 72deg 144deg,
+    #f59e0b 144deg 216deg,
+    #ef4444 216deg 288deg,
+    #22c55e 288deg 360deg
+  );
 }
-.slice{
-  position:absolute; inset:0; clip-path: polygon(50% 50%, 100% 0, 100% 100%);
-  display:flex; align-items:center; justify-content:center;
-  transform-origin:50% 50%;
-  font-size:54px; font-weight:900; color:#fff; text-shadow:0 4px 12px rgba(0,0,0,.6);
+.segment-label{
+  position:absolute;
+  left:50%;top:50%;
+  transform-origin:center;
+  font-size:24px;
+  font-weight:900;
+  text-shadow:0 2px 5px rgba(0,0,0,0.6);
 }
-.slice small{font-size:46px}
-.c1{background:#0ea5e9;}  /* 1 */
-.c2{background:#fde68a; color:#0b1220;} /* 2 */
-.c0{background:#f59e0b;}  /* 0 */
-.c3{background:#1d4ed8;}  /* 3 */
-.cx{background:#ef2a68;}  /* حظ أوفر */
-
-/* المؤشر تحت */
+.segment-label:nth-child(1){transform:rotate(36deg) translate(0,-120px) rotate(-36deg);content:"0";}
+.segment-label:nth-child(2){transform:rotate(108deg) translate(0,-120px) rotate(-108deg);}
+.segment-label:nth-child(3){transform:rotate(180deg) translate(0,-120px) rotate(-180deg);}
+.segment-label:nth-child(4){transform:rotate(252deg) translate(0,-120px) rotate(-252deg);}
+.segment-label:nth-child(5){transform:rotate(324deg) translate(0,-120px) rotate(-324deg);}
 .pointer{
-  position:absolute; bottom:-14px; left:50%; transform:translateX(-50%);
-  width:0; height:0;
-  border-left:16px solid transparent;
-  border-right:16px solid transparent;
-  border-top:26px solid #38bdf8; /* مثلث */
-  filter: drop-shadow(0 6px 10px rgba(0,0,0,.5));
+  position:absolute;
+  bottom:-20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:0;
+  height:0;
+  border-left:15px solid transparent;
+  border-right:15px solid transparent;
+  border-top:30px solid #ff3366;
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.4));
 }
-
-/* أزرار */
-.actions{
-  margin-top:12px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+button{
+  margin-top:20px;
+  padding:12px 24px;
+  border:none;
+  border-radius:30px;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+  background:linear-gradient(90deg,#4ef0cb,#00cfff);
+  color:#00222a;
+  box-shadow:0 6px 18px rgba(0,0,0,.3);
 }
-.btn{
-  border:none; cursor:pointer; padding:12px 18px; border-radius:999px;
-  font-weight:900; color:#042b2b; background:#f59e0b;
-  display:inline-flex; align-items:center; gap:10px; box-shadow:0 10px 28px rgba(0,0,0,.28);
-}
-.btn.secondary{background:#86efac; color:#06341e}
-.btn:disabled{opacity:.55; cursor:not-allowed}
-
-/* النتيجة */
-.result{
-  margin:14px auto 2px; padding:12px 14px; max-width:520px;
-  border-radius:14px; text-align:center; font-weight:900; font-size:20px;
+button:disabled{opacity:0.5;cursor:not-allowed;}
+#result{
+  margin-top:15px;
+  font-size:20px;
+  font-weight:900;
+  text-align:center;
   display:none;
-  background:rgba(34,197,94,.12);
-  border:1px solid rgba(34,197,94,.35);
 }
-.result.bad{ background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.35) }
-
-/* الحالة */
-.status{
-  margin-top:16px; padding:14px; border-radius:18px; background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.08); color:var(--ink);
-  display:grid; gap:8px;
-}
-.stat-row{display:flex; justify-content:space-between; align-items:center}
-.bar{height:12px; border-radius:999px; background:#0f172a; overflow:hidden; border:1px solid rgba(255,255,255,.08)}
-.bar .fill{height:100%; background:linear-gradient(90deg,#22c55e,#22d3ee); width:0%}
-
-/* Toast */
-.toast{
-  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-  background:#0ea5e9; color:#062a30; padding:10px 16px; border-radius:12px; font-weight:900;
-  box-shadow:0 12px 30px rgba(0,0,0,.35); display:none; z-index:50;
-}
-.toast.bad{background:#ef4444; color:#2b0b0b}
-
-/* مودال كيف أكسب */
-.modal{position:fixed; inset:0; display:none; place-items:center; z-index:60}
-.modal .scrim{position:absolute; inset:0; background:rgba(0,0,0,.55)}
-.modal .sheet{
-  position:relative; background:#0b1220; border:1px solid rgba(255,255,255,.08);
-  border-radius:18px; padding:18px; width:min(520px,92vw);
-}
-.modal h3{margin:0 0 8px; font-weight:900}
-.modal .close{position:absolute; top:8px; inset-inline-start:8px; border:none; border-radius:10px; padding:6px 10px; cursor:pointer}
-
-@media (max-width:520px){
-  .header h1{font-size:30px}
-  .slice{font-size:42px}
+#info{
+  margin-top:20px;
+  text-align:center;
+  font-weight:700;
+  color:#9fe7ff;
 }
 </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <img src="https://i.ibb.co/B5MQWCWF/fly-express.jpg" alt="" width="54" height="54" style="border-radius:14px;border:1px solid rgba(255,255,255,.1)">
-    <h1>Fly Express — <span style="color:#22eaaa">عجلة الحظ</span></h1>
+<h1>🎡 عجلة الحظ — Fly Express</h1>
+<p>لف العجلة واكسب جوائزك! السهم تحت هو المرجع للفوز.</p>
+
+<div id="wheelContainer">
+  <div id="wheel">
+    <div class="segment-label">0</div>
+    <div class="segment-label">1</div>
+    <div class="segment-label">2</div>
+    <div class="segment-label">حظ أوفر</div>
+    <div class="segment-label">3</div>
   </div>
-
-  <div class="badge">🎁 لفّ العجلة واكسب جوائزك! <span style="opacity:.8">المحاولات تفتح كل خميس</span></div>
-
-  <div class="card" style="margin-top:18px">
-    <div class="sub">المحاولات تتجدد تلقائيًا كل خميس. السهم <b>تحت</b> هو المرجع للفوز.</div>
-
-    <div class="wheel-wrap">
-      <div class="canvas-wrap">
-        <div id="wheel"></div>
-        <div class="ring"></div>
-        <div class="pointer"></div>
-      </div>
-
-      <div class="actions">
-        <button id="spinBtn" class="btn"><span>🎯</span> لفّ العجلة</button>
-        <button id="howBtn" class="btn secondary"><span>❓</span> إزّاي أكسب؟</button>
-      </div>
-
-      <div id="result" class="result"></div>
-
-      <div class="status">
-        <div class="stat-row"><div>المحاولات المتبقية:</div><div id="tries" style="font-weight:900">—</div></div>
-        <div class="stat-row"><div>المستوى:</div><div id="level">Lv 1</div></div>
-        <div class="bar"><div id="xpFill" class="fill"></div></div>
-        <div class="stat-row"><div>XP:</div><div id="xpText">0 / 100</div></div>
-        <div class="stat-row">
-          <div>معلومة:</div>
-          <div id="hint" style="color:var(--muted)">لو مش الخميس هتظهر 0 محاولة.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="pointer"></div>
 </div>
 
-<!-- Modal -->
-<div id="modal" class="modal">
-  <div class="scrim"></div>
-  <div class="sheet">
-    <button class="close" id="closeModal">✖</button>
-    <h3>قواعد الفوز</h3>
-    <ul>
-      <li>العجلة فيها 0 و 1 و 2 و 3 و <b>حظ أوفر</b>.</li>
-      <li>المحاولات تفتح كل <b>خميس</b> (إعداد افتراضي: لفّتين).</li>
-      <li>كل نتيجة بتدي XP؛ لما تعبي الشريط هتترقّى مستوى.</li>
-      <li>السهم تحت هو المرجع—القطاع اللي هيقف عنده هو النتيجة الفعلية.</li>
-    </ul>
-  </div>
-</div>
+<button id="spinBtn">لف العجلة 🎯</button>
 
-<div id="toast" class="toast"></div>
+<div id="result"></div>
+<div id="info"></div>
 
 <script>
-/* ================== إعدادات قابلة للتعديل ================== */
-const CONFIG = {
-  weeklyTries: 2,                   // عدد اللفات يوم الخميس
-  xpPerOutcome: { '0': 5, '1': 20, '2': 30, '3': 45, 'حظ أوفر': 10 },
-  levelStep: 100                    // XP لكل مستوى
-};
-/* =========================================================== */
+const wheel=document.getElementById('wheel');
+const spinBtn=document.getElementById('spinBtn');
+const result=document.getElementById('result');
+const info=document.getElementById('info');
+let currentRotation=0;
+let tries=2;
+info.textContent=`عدد المحاولات المتبقية: ${tries}`;
 
-/* حالة التخزين */
-const LS_KEY = 'fly_wheel_state_v3';
-const defaultState = {
-  rotation: 0,
-  tries: 0,
-  level: 1,
-  xp: 0,
-  lastThursday: '' // yyyy-mm-dd لآخر خميس تم فتحه
-};
-let state = loadState();
+const segments=['0','1','2','حظ أوفر','3'];
+const segSize=360/segments.length;
+const PICK_DEG=270; // السهم لتحت
 
-/* عناصر DOM */
-const wheelEl = document.getElementById('wheel');
-const spinBtn = document.getElementById('spinBtn');
-const triesEl = document.getElementById('tries');
-const levelEl = document.getElementById('level');
-const xpFill = document.getElementById('xpFill');
-const xpText = document.getElementById('xpText');
-const resultBox = document.getElementById('result');
-const hintEl = document.getElementById('hint');
-const toastEl = document.getElementById('toast');
-const modal = document.getElementById('modal');
-document.getElementById('howBtn').onclick = ()=> modal.style.display='grid';
-document.getElementById('closeModal').onclick = ()=> modal.style.display='none';
-modal.querySelector('.scrim').onclick = ()=> modal.style.display='none';
-
-/* تقسيمات العجلة */
-const SEGMENTS = ['0','1','2','حظ أوفر','3'];   // ترتيب بالعكس أو مع عقارب؟ سنحسبها بالزاوية
-const SEG_SIZE = 360 / SEGMENTS.length;         // 72°
-const PICK_DEG = 270;                            // السهم تحت
-
-/* رسم الشرائح */
-(function draw(){
-  wheelEl.innerHTML = '';
-  for (let i=0;i<SEGMENTS.length;i++){
-    const s = document.createElement('div');
-    s.className = 'slice';
-    const start = i*SEG_SIZE;
-    s.style.transform = `rotate(${start}deg)`;
-    s.style.clipPath = `polygon(50% 50%, 100% 0, 100% 100%)`;
-    let cls = 'c0';
-    const val = SEGMENTS[i];
-    if (val==='1') cls='c1';
-    else if (val==='2') cls='c2';
-    else if (val==='3') cls='c3';
-    else if (val==='حظ أوفر') cls='cx';
-    else cls='c0';
-    s.classList.add(cls);
-
-    const label = document.createElement('div');
-    label.textContent = val;
-    s.appendChild(label);
-    wheelEl.appendChild(s);
-  }
-  wheelEl.style.borderRadius = '50%';
-})();
-
-/* فتح المحاولات يوم الخميس فقط */
-resetTriesIfThursday();
-updateUI();
-
-/* حدث اللفة */
-spinBtn.addEventListener('click', spin);
-
-/* ============ دوال ============ */
-function spin(){
-  if (state.tries <= 0){
-    showToast('مفيش محاولات متاحة الآن. جرّب يوم الخميس ✨', false);
+spinBtn.addEventListener('click',()=>{
+  if(tries<=0){
+    result.style.display='block';
+    result.textContent='❌ مفيش محاولات، جرّب الخميس الجاي.';
+    result.style.color='#f87171';
     return;
   }
-  spinBtn.disabled = true;
-  resultBox.style.display = 'none';
-
-  const extra = 360*(5 + Math.floor(Math.random()*4)) + Math.floor(Math.random()*360);
-  state.rotation = (state.rotation + extra) % (360*100000);
-  wheelEl.style.transform = `rotate(${state.rotation}deg)`;
-
+  spinBtn.disabled=true;
+  result.style.display='none';
+  const extra=360*(5+Math.floor(Math.random()*4))+Math.floor(Math.random()*360);
+  currentRotation=(currentRotation+extra)%36000;
+  wheel.style.transform=`rotate(${currentRotation}deg)`;
   setTimeout(()=>{
-    const rot = state.rotation % 360;
-    const selectedAngle = (PICK_DEG - rot + 360) % 360;
-    const idx = Math.floor(selectedAngle / SEG_SIZE);
-    const result = SEGMENTS[idx];
-
-    state.tries -= 1;
-
-    const gained = CONFIG.xpPerOutcome[result] || 0;
-    const leveled = addXP(gained);
-
-    let msg, good = true;
-    if (result === 'حظ أوفر'){
-      msg = `حظ أوفر! (+${gained} XP)`;
-      good = false;
+    const rot=currentRotation%360;
+    const selected=(PICK_DEG-rot+360)%360;
+    const index=Math.floor(selected/segSize);
+    const outcome=segments[index];
+    tries--;
+    info.textContent=`عدد المحاولات المتبقية: ${tries}`;
+    result.style.display='block';
+    if(outcome==='حظ أوفر'){
+      result.textContent='😅 حظ أوفر المرة الجاية!';
+      result.style.color='#f87171';
     }else{
-      const n = Number(result);
-      const txt = (n===0) ? 'ولا توصيله' : (n===1 ? 'توصيلة' : 'توصيلات');
-      msg = (n===0) ? `للأسف ${txt} (+${gained} XP)` : `مبروك! كسبت ${n} ${txt} مجانية 🎉 (+${gained} XP)`;
-      good = n>0;
+      result.textContent=`🎉 مبروك! كسبت ${outcome} توصيلات مجانية!`;
+      result.style.color='#4ef0cb';
     }
-    resultBox.textContent = msg;
-    resultBox.classList.toggle('bad', !good);
-    resultBox.style.display = 'block';
-
-    if (leveled){
-      setTimeout(()=>showToast(`ارتقيت للمستوى ${state.level}! 🔥`, true), 900);
-    }
-
-    saveState();
-    updateUI();
-    spinBtn.disabled = false;
-  }, 6100);
-}
-
-function addXP(amount){
-  let leveled = false;
-  state.xp += amount;
-  while (state.xp >= CONFIG.levelStep){
-    state.xp -= CONFIG.levelStep;
-    state.level += 1;
-    leveled = true;
-  }
-  return leveled;
-}
-
-function updateUI(){
-  triesEl.textContent = state.tries;
-  levelEl.textContent = `Lv ${state.level}`;
-  xpText.textContent = `${state.xp} / ${CONFIG.levelStep}`;
-  xpFill.style.width = `${(state.xp/CONFIG.levelStep)*100}%`;
-}
-
-function showToast(text, good=true){
-  toastEl.textContent = text;
-  toastEl.classList.toggle('bad', !good);
-  toastEl.style.display = 'block';
-  setTimeout(()=> toastEl.style.display='none', 2200);
-}
-
-/* يفتح لفّتين كل خميس فقط */
-function resetTriesIfThursday(){
-  const today = new Date();
-  const isThu = today.getDay() === 4; // 0:أحد ... 4:خميس
-  const thursdayId = nearestThursdayId(today);
-  if (isThu){
-    if (state.lastThursday !== thursdayId){
-      state.lastThursday = thursdayId;
-      state.tries = CONFIG.weeklyTries;
-      saveState();
-      showToast('تم فتح محاولات هذا الخميس ✅', true);
-    }
-    hintEl.textContent = 'اليوم الخميس — المحاولات مفتوحة ✅';
-  }else{
-    state.tries = 0; // خارج الخميس.. مغلق
-    hintEl.textContent = 'المحاولات تتجدد كل خميس.';
-    saveState();
-  }
-}
-
-/* أقرب خميس (تاريخ فقط) */
-function nearestThursdayId(d){
-  const x = new Date(d);
-  // ارجع للخميس الحالي من هذا الأسبوع
-  const diff = (4 - x.getDay() + 7) % 7; // أيام لحد الخميس القادم
-  const th = new Date(x);
-  th.setDate(x.getDate() + diff);
-  return th.toISOString().slice(0,10); // yyyy-mm-dd
-}
-
-/* تخزين */
-function loadState(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return { ...defaultState };
-    const obj = JSON.parse(raw);
-    return { ...defaultState, ...obj };
-  }catch{
-    return { ...defaultState };
-  }
-}
-function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+    spinBtn.disabled=false;
+  },5200);
+});
 </script>
 </body>
 </html>
