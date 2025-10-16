@@ -4,213 +4,250 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fly Express — عجلة الحظ</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
 <style>
-  :root{--neon:#1df2c2;--text:#eaf2f6;--muted:#b8c3cc}
+  :root{
+    --neon:#00ffaa;
+    --neon2:#00a8ff;
+    --glass: rgba(255,255,255,.06);
+    --border: rgba(255,255,255,.08);
+    --shadow: 0 18px 50px rgba(0,0,0,.35);
+    --maxw: 460px;
+  }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0;font-family:"Cairo",system-ui,sans-serif;color:var(--text);padding:20px;
+    margin:0;font-family:'Cairo',system-ui,sans-serif;color:#fff;text-align:center;overflow-x:hidden;
+    /* خلفية RPG متحركة */
     background:
-      radial-gradient(1200px 700px at 10% 10%, #0a2030 0%, transparent 60%),
-      radial-gradient(1200px 700px at 90% 90%, #051621 0%, transparent 60%),
-      linear-gradient(180deg,#071420,#0a2538 60%,#071420);
-    background-size:140% 140%,140% 140%,100% 100%;
+      radial-gradient(1200px 600px at 10% 10%, #092034 0%, transparent 60%),
+      radial-gradient(1000px 500px at 90% 90%, #041821 0%, transparent 60%),
+      conic-gradient(from 0deg at 50% 50%, #04131b, #071a25, #0a2a43, #071a25, #04131b);
+    background-size: 140% 140%, 140% 140%, 200% 200%;
+    animation: bgA 16s ease-in-out infinite, bgB 20s ease-in-out infinite, hue 32s linear infinite;
   }
-  .wrap{max-width:720px;margin:0 auto}
-  header{margin-bottom:14px}
-  header h1{margin:0 0 6px;font-size:28px;font-weight:800}
-  header .sub{color:var(--muted);font-weight:700}
-  .card{
-    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);
-    backdrop-filter:blur(8px);border-radius:18px;padding:18px;box-shadow:0 18px 48px rgba(0,0,0,.35)
-  }
+  @keyframes bgA{0%,100%{background-position:10% 10%, 90% 90%, 0% 50%}50%{background-position:28% 18%, 72% 82%, 100% 50%}}
+  @keyframes bgB{0%,100%{filter:saturate(1)}50%{filter:saturate(1.15)}}
+  @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
 
-  .stage{display:grid;place-items:center;gap:12px;margin-top:8px}
-  .wheel-shell{
-    width:min(88vw,480px);aspect-ratio:1/1;border-radius:50%;
-    box-shadow:0 0 0 10px var(--neon), 0 0 30px #1df2c28c, inset 0 0 0 10px #101;
-    display:grid;place-items:center;background:#0002
+  h1{margin:22px auto 10px;font-size:32px;font-weight:900;max-width:var(--maxw)}
+  h1 .brand{color:var(--neon)}
+  h1 .sub{color:#b8e6ff}
+  .wrap{
+    width:100%;max-width:var(--maxw);margin:0 auto 34px;padding:18px;
+    background:var(--glass);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);position:relative;
   }
-  svg{width:92%;height:92%;overflow:visible}
-  .rotor{transition:transform 6s cubic-bezier(.15,.8,.05,1);transform-origin:50% 50%}
-  .hub{fill:#0b0b0b}
+  .hint{max-width:var(--maxw);margin:0 auto 10px;color:#d5e1ea;font-weight:700}
+  .hint b{color:#fff}
+  #wheel-area{position:relative;margin:18px auto 10px;width:320px;height:320px}
+  #wheelCanvas{width:100%;height:100%;border:9px solid var(--neon);border-radius:50%;box-shadow:0 0 22px rgba(0,255,170,.35) inset, 0 0 30px rgba(0,255,170,.35);background:#06131d}
   .pointer{
-    width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:28px solid #ff477e;
-    filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));margin-top:6px
+    position:absolute;left:50%;bottom:-20px;transform:translateX(-50%) rotate(180deg);
+    width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:22px solid #ff2c6f;
+    filter:drop-shadow(0 0 10px rgba(255,44,111,.7))
   }
 
-  .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-  button{
-    border:0;border-radius:999px;padding:12px 22px;font-weight:800;cursor:pointer;
-    background:linear-gradient(135deg,#22e6a7,#24b6ff);color:#012;box-shadow:0 12px 22px rgba(0,0,0,.35)
-  }
+  .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+  button{background:linear-gradient(90deg,var(--neon),var(--neon2));border:none;color:#001014;
+    font-weight:900;font-size:18px;padding:10px 22px;border-radius:30px;cursor:pointer;box-shadow:0 10px 26px rgba(0,255,170,.3)}
   button:disabled{opacity:.6;cursor:not-allowed}
-  .result{margin:14px 0 6px;text-align:center;font-size:22px;font-weight:800;color:#00ffc3}
-  .status{ text-align:center;color:#cfe7f2;font-weight:700 }
-  .badge{display:inline-flex;gap:8px;align-items:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:12px}
+  .btn-ghost{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14)}
 
-  .call{position:fixed;right:18px;top:18px;background:#ff6bd6;color:#101;padding:12px 14px;border-radius:999px;text-decoration:none;font-weight:800;box-shadow:0 12px 26px rgba(0,0,0,.35)}
+  .stat{display:flex;justify-content:center;gap:14px;margin-top:10px;font-weight:800;color:#cfe6f3}
+  .note{margin-top:8px;font-weight:800}
+  .note.ok{color:#8affc4}.note.warn{color:#ffd166}
+  .result{margin-top:14px;font-weight:900;font-size:20px}
+  .win{color:#00ffaa}.lose{color:#ff5c8a}
+
+  /* زر واتساب عائم */
+  .wa-fab{
+    position:fixed;right:14px;top:14px;z-index:9;background:#ff7dc0;color:#1b0020;
+    border-radius:999px;padding:10px 16px;display:flex;gap:10px;align-items:center;
+    box-shadow:0 12px 30px rgba(0,0,0,.35);font-weight:900
+  }
+  .wa-fab img{width:22px;height:22px}
 </style>
 </head>
 <body>
-  <a class="call" href="tel:+201017908076">📞 تواصل</a>
 
-  <div class="wrap">
-    <header>
-      <h1>🎡 عجلة الحظ — <span style="color:#39f5c7">Fly Express</span></h1>
-      <div class="sub">لف العجلة واكسب جوائزك؛ <b>السهم لتحت</b> هو المرجع للفوز. المحاولات تتجدد تلقائيًا كل <b>خميس</b>.</div>
-    </header>
+<a class="wa-fab" href="https://wa.me/201017908076?text=%D8%B7%D9%84%D8%A8%20%D9%83%D9%88%D8%AF%20%D8%B9%D8%AC%D9%84%D8%A9%20%D8%A7%D9%84%D8%AE%D9%85%D9%8A%D8%B3" target="_blank" rel="noopener">
+  تواصل <img alt="phone" src="https://upload.wikimedia.org/wikipedia/commons/6/6b/Phone_font_awesome.svg">
+</a>
 
-    <div class="card">
-      <div class="stage">
-        <div class="wheel-shell">
-          <!-- SVG WHEEL -->
-          <svg viewBox="0 0 100 100" aria-label="Wheel">
-            <!-- المجموعة الدوّارة -->
-            <g id="rotor" class="rotor"></g>
-            <!-- حلقة خارجية خفيفة -->
-            <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>
-            <!-- الهَب (الدائرة الداخلية) -->
-            <circle class="hub" cx="50" cy="50" r="12"/>
-          </svg>
-        </div>
-        <div class="pointer" aria-hidden="true"></div>
-      </div>
+<h1><span class="brand">Fly Express</span> — <span class="sub">عجلة الحظ 🎡</span></h1>
+<p class="hint">لف العجلة واكسب جوائزك! <b>السهم تحت</b> هو المرجع للفوز. المحاولات تتجدد تلقائيًا كل <b>خميس</b> بعد التفعيل.</p>
 
-      <div class="btns">
-        <button id="spinBtn">🎯 لف العجلة</button>
-        <button id="howBtn" style="background:linear-gradient(135deg,#d4ecff,#a9e9c9)">❓ إزاي أكسب؟</button>
-      </div>
-
-      <div id="result" class="result"></div>
-      <div class="status"><span class="badge">المحاولات المتبقية: <b id="triesLeft">0</b></span></div>
-      <p style="text-align:center;color:#b8c3cc;margin:6px 0 0">💡 النتيجة بتظهر بعد ما العجلة توقف تمامًا.</p>
-    </div>
+<div class="wrap">
+  <div id="wheel-area">
+    <canvas id="wheelCanvas" width="320" height="320"></canvas>
+    <div class="pointer"></div>
   </div>
 
+  <div class="btns">
+    <button id="activateBtn" class="btn-ghost">🔑 تفعيل محاولات الخميس</button>
+    <button id="spinBtn">🎯 لف العجلة</button>
+  </div>
+
+  <div class="stat">
+    <div>المحاولات المتبقية: <b id="left">0</b></div>
+  </div>
+  <div id="note" class="note"></div>
+  <div id="result" class="result"></div>
+</div>
+
 <script>
-/* =================== تكوين العجلة عبر SVG =================== */
-const segments = [
-  {label:'0', color:'#0fbbe8'},
-  {label:'1', color:'#f5b041'},
-  {label:'2', color:'#8bd8ff'},
-  {label:'حظ أوفر', color:'#ff5a7c'},
-  {label:'3', color:'#27ae60'}
-];
-const rotor = document.getElementById('rotor');
+/* ================= إعدادات التحكم ================= */
+const ATTEMPTS_PER_WEEK = 2;     // عدد المحاولات بعد التفعيل
+const WEEK_PIN          = "2468"; // ← حط كود الخميس هنا وتغيّره كل أسبوع
+/* =================================================== */
 
-const cx=50, cy=50, r=46, innerR=13; // نصف قطر الشريحة وفتحة الهب
-const segAngle = 360/segments.length;
+const canvas  = document.getElementById("wheelCanvas");
+const ctx     = canvas.getContext("2d");
+const spinBtn = document.getElementById("spinBtn");
+const actBtn  = document.getElementById("activateBtn");
+const result  = document.getElementById("result");
+const leftEl  = document.getElementById("left");
+const noteEl  = document.getElementById("note");
 
-// ارسم الشرائح + النصوص
-segments.forEach((seg, i)=>{
-  const start = (i*segAngle-90) * Math.PI/180;   // نبدأ من أعلى الدائرة (−90°) عشان توزيع جميل
-  const end   = ((i+1)*segAngle-90) * Math.PI/180;
+/* القطاعات */
+const sectors = ["1","2","3","حظ أوفر","0"];
+const colors  = ["#0aa8ff","#7cd9ff","#0f6dc2","#ff2c6f","#1db8a9"];
 
-  const x1 = cx + r*Math.cos(start), y1 = cy + r*Math.sin(start);
-  const x2 = cx + r*Math.cos(end),   y2 = cy + r*Math.sin(end);
+let rotation = 0;    // راديان
+let isSpinning = false;
 
-  const largeArc = segAngle > 180 ? 1 : 0;
+/* رسم العجلة */
+function drawWheel(){
+  const n = sectors.length, arc = 2*Math.PI/n;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let i=0;i<n;i++){
+    const start = i*arc + rotation;
+    ctx.beginPath();
+    ctx.moveTo(160,160);
+    ctx.arc(160,160,150,start,start+arc);
+    ctx.fillStyle = colors[i]; ctx.fill();
 
-  // مسار الشريحة (حلقة بين r و innerR)
-  const xi1 = cx + innerR*Math.cos(end),
-        yi1 = cy + innerR*Math.sin(end),
-        xi2 = cx + innerR*Math.cos(start),
-        yi2 = cy + innerR*Math.sin(start);
-
-  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-  const d = [
-    `M ${xi1} ${yi1}`,
-    `A ${innerR} ${innerR} 0 ${largeArc} 0 ${xi2} ${yi2}`,
-    `L ${x1} ${y1}`,
-    `A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`,
-    'Z'
-  ].join(' ');
-  path.setAttribute('d', d);
-  path.setAttribute('fill', seg.color);
-  path.setAttribute('stroke', 'rgba(0,0,0,.25)');
-  path.setAttribute('stroke-width','0.3');
-  rotor.appendChild(path);
-
-  // النص في منتصف الشريحة
-  const midDeg = (i+0.5)*segAngle-90;
-  const rad = midDeg*Math.PI/180;
-  const tx = cx + (innerR + (r-innerR)*0.55)*Math.cos(rad);
-  const ty = cy + (innerR + (r-innerR)*0.55)*Math.sin(rad);
-
-  const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-  text.setAttribute('x', tx);
-  text.setAttribute('y', ty);
-  text.setAttribute('fill', '#fff');
-  text.setAttribute('font-size', '8');
-  text.setAttribute('font-weight', '800');
-  text.setAttribute('text-anchor', 'middle');
-  text.setAttribute('dominant-baseline', 'middle');
-  text.textContent = seg.label;
-  rotor.appendChild(text);
-});
-
-/* =================== منطق الدوران/الفوز =================== */
-const PICK_DEG = 270; // السهم لتحت
-const ATTEMPTS_PER_WEEK = 10;
-
-let currentRotation = 0;
-const spinBtn = document.getElementById('spinBtn');
-const howBtn  = document.getElementById('howBtn');
-const resultEl = document.getElementById('result');
-const triesLeftEl = document.getElementById('triesLeft');
-
-function isThursday(d=new Date()){ return d.getDay()===4; }
-function getWeekKey(d=new Date()){
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum=(date.getUTCDay()+6)%7; date.setUTCDate(date.getUTCDate()-dayNum+3);
-  const firstThursday=new Date(Date.UTC(date.getUTCFullYear(),0,4));
-  const week=1+Math.round(((date-firstThursday)/86400000-3+(firstThursday.getUTCDay()+6)%7)/7);
-  return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
-}
-function loadTries(){
-  const key='wheel_svg_tries_'+getWeekKey();
-  let left=Number(localStorage.getItem(key));
-  if(!Number.isInteger(left)) left=ATTEMPTS_PER_WEEK;
-
-  const openKey='wheel_svg_open_'+getWeekKey();
-  if(isThursday() && localStorage.getItem(openKey)!=='1'){
-    left=ATTEMPTS_PER_WEEK; localStorage.setItem(openKey,'1');
+    ctx.save();
+    ctx.translate(160,160);
+    ctx.rotate(start + arc/2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 22px Cairo";
+    ctx.fillText(sectors[i],128,8);
+    ctx.restore();
   }
-  localStorage.setItem(key,String(left)); return left;
 }
-function saveTries(left){ localStorage.setItem('wheel_svg_tries_'+getWeekKey(), String(left)); }
-function syncUI(){ const left=loadTries(); triesLeftEl.textContent=left; spinBtn.disabled=left<=0; }
 
+/* مفاتيح أسبوعية */
+function getThursdayKey(){
+  const d=new Date(), diff=(4-d.getDay()+7)%7;
+  const th=new Date(d.getFullYear(),d.getMonth(),d.getDate()+diff);
+  return th.toISOString().split('T')[0];
+}
+function todayIsThursday(){ return new Date().getDay()===4; }
+
+function loadState(){
+  const wk = getThursdayKey();
+  const savedWeek = localStorage.getItem("fx_week_key");
+  const activated = localStorage.getItem("fx_activated_week") === wk;
+  let left = +(localStorage.getItem("fx_left")||0);
+
+  // لو أسبوع جديد—الغِ التفعيل والمحاولات
+  if(savedWeek !== wk){
+    localStorage.setItem("fx_week_key", wk);
+    localStorage.removeItem("fx_activated_week");
+    left = 0;
+    localStorage.setItem("fx_left", "0");
+  }
+
+  updateUI(left, activated);
+  return {left, activated, wk};
+}
+function saveLeft(left){
+  localStorage.setItem("fx_left", String(left));
+  leftEl.textContent = left;
+}
+
+function updateUI(left, activated){
+  leftEl.textContent = left;
+  spinBtn.disabled = !activated || left<=0;
+  if(!activated){
+    noteEl.className='note warn';
+    noteEl.textContent = "المحاولات مقفولة. اضغط (تفعيل محاولات الخميس) وأدخل كود الأسبوع.";
+  }else if(left<=0){
+    noteEl.className='note warn';
+    noteEl.textContent = todayIsThursday()
+      ? "خلصت محاولاتك لهذا الأسبوع ✅"
+      : "محاولاتك خلصت — جرب الخميس الجاي ✨";
+  }else{
+    noteEl.className='note';
+    noteEl.textContent = "";
+  }
+}
+
+function activateWeek(){
+  const pin = prompt("ادخل كود الخميس:");
+  if(pin === null) return;
+  if(pin === WEEK_PIN){
+    localStorage.setItem("fx_activated_week", getThursdayKey());
+    localStorage.setItem("fx_left", String(ATTEMPTS_PER_WEEK));
+    const {left, activated} = loadState();
+    updateUI(left, activated);
+    alert("تم تفعيل محاولات هذا الأسبوع ✅");
+  }else{
+    alert("الكود غير صحيح ❌");
+  }
+}
+
+let state = loadState();
+
+/* السهم لأسفل */
+const POINTER_ANGLE = Math.PI/2;
+
+/* دوران */
 function spin(){
-  let left=loadTries(); if(left<=0){ resultEl.textContent='خلصت محاولاتك. جرّب الخميس الجاي ✨'; return; }
-  spinBtn.disabled=true; resultEl.textContent='';
+  state = loadState();
+  if(isSpinning || !state.activated || state.left<=0) return;
 
-  const extra = 5 + Math.floor(Math.random()*4); // 5..8 دورات
-  const randomAngle = Math.random()*360;
-  currentRotation += extra*360 + randomAngle;
-  rotor.style.transform = `rotate(${currentRotation}deg)`;
+  isSpinning = true; spinBtn.disabled = true; result.textContent = "";
 
-  setTimeout(()=>{
-    const rot = currentRotation%360;
-    const selected = (PICK_DEG - rot + 360) % 360;
-    const index = Math.round(selected / segAngle) % segments.length;
-    const outcome = segments[index].label;
+  const spins = 5 + Math.random()*5;
+  const finalAngle = rotation + spins * (2*Math.PI);
+  const duration = 4200;
+  const startT = performance.now();
 
-    let msg=''; 
-    if(outcome==='حظ أوفر') msg='حظ أوفر! جرّب تاني 🍀';
-    else msg=`🎉 مبروك! كسبت ${Number(outcome)} توصيلة مجانية`;
-    resultEl.textContent=msg;
+  function anim(now){
+    const t = Math.min((now - startT)/duration, 1);
+    const easeOut = 1 - Math.pow(1 - t, 3);
+    rotation = (finalAngle * easeOut) % (2*Math.PI);
+    drawWheel();
+    if(t<1){ requestAnimationFrame(anim); }
+    else{
+      const n=sectors.length, arc=2*Math.PI/n;
+      const rel = (POINTER_ANGLE - (rotation % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+      const index = Math.floor(rel / arc) % n;
+      const val = sectors[index];
 
-    left=Math.max(0,left-1); saveTries(left); triesLeftEl.textContent=left;
-    spinBtn.disabled=left<=0;
-  },6100);
+      // خصم محاولة
+      const left = Math.max(0, state.left-1);
+      saveLeft(left);
+
+      if(val === "حظ أوفر"){
+        result.innerHTML = "😔 <span class='lose'>حظ أوفر! جرب تاني</span>";
+      }else{
+        result.innerHTML = `🎉 <span class='win'>مبروك! كسبت ${val} توصيلات مجانية</span>`;
+      }
+      isSpinning = false;
+      // تحديث الحالة للزر والتنبيه
+      updateUI(left, true);
+    }
+  }
+  requestAnimationFrame(anim);
 }
 
-spinBtn.addEventListener('click',spin);
-howBtn.addEventListener('click',()=>alert('• السهم لتحت هو المرجع.\n• 0/1/2/3 = عدد التوصيلات المجانية.\n• لو طلع "حظ أوفر" جرّب تاني.\n• المحاولات تتجدد تلقائيًا كل خميس.'));
-syncUI();
+drawWheel();
+spinBtn.addEventListener("click", spin);
+actBtn.addEventListener("click", activateWeek);
 </script>
 </body>
 </html>
