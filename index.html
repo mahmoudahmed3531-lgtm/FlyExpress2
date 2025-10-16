@@ -107,162 +107,37 @@
 </div>
 
 <script>
-/* إعدادات */
-const GAME_DURATION = 30;
-const WIN_THRESHOLD = 2500;
-const GOOD_SCORE = 100;
-const BAD_SCORE  = -50;
-const GRACE_MS   = 150;     // فترة سماح بعد نزول الهدف
-
-/* عناصر */
-const board = document.getElementById('board');
-const holes = Array.from(board.querySelectorAll('.hole'));
-const scoreEl = document.getElementById('score');
-const bestEl  = document.getElementById('best');
-const timeEl  = document.getElementById('time');
-const startBtn= document.getElementById('startBtn');
-const overlay = document.getElementById('overlay');
-const beginBtn= document.getElementById('beginBtn');
-const cdEl    = document.getElementById('cd');
-const finalEl = document.getElementById('final');
-const claimBox= document.getElementById('claimBox');
-const waBtn   = document.getElementById('waBtn');
-
-let score = 0, best = parseInt(localStorage.getItem('wap_best')||'0',10);
-let playing = false, timeLeft = GAME_DURATION;
-let spawnTimer = null, tickTimer = null;
-
-/* صوت */
-let AC, ctx, outGain;
-function audioInit(){
-  if (ctx) return;
-  AC = window.AudioContext || window.webkitAudioContext;
-  if(!AC) return;
-  ctx = new AC();
-  outGain = ctx.createGain(); outGain.gain.value = 0.15; outGain.connect(ctx.destination);
-}
-function beep(freq=800, dur=0.08, type='square'){
-  if(!ctx) return;
-  const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type; o.frequency.value=freq;
-  o.connect(g); g.connect(outGain); const t=ctx.currentTime;
-  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(.6,t+0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.01);
-}
-bestEl.textContent = best;
-
-/* تهيئة الأهداف */
-holes.forEach(hole=>{
-  const target = hole.querySelector('.target');
-  target.dataset.state='down'; target.dataset.kind='good'; target.dataset.hit='0';
-  target.dataset.graceUntil='0';
-
-  const handleTap = (e)=>{
-    e.preventDefault();
-    if(!playing) return;
-
-    // خلي الضغطة على الحفرة كلها تشتغل كمان
-    const t = target;
-
-    // اسمح بالضغطة لو كان Up أو خلال فترة السماح
-    const wasUp = (t.dataset.state==='up') || (Date.now() < (+t.dataset.graceUntil||0));
-    if(!wasUp) return;
-
-    // امنع التكرار
-    if(t.dataset.hit==='1') return;
-    t.dataset.hit='1';
-
-    // نزل الهدف فورًا
-    t.dataset.state='down'; t.classList.remove('up'); t.classList.add('hit');
-    setTimeout(()=>t.classList.remove('hit'),180);
-
-    if(t.dataset.kind==='good'){
-      score += GOOD_SCORE; beep(900,.07,'square');
-    }else{
-      score = Math.max(0, score + BAD_SCORE);
-      hole.classList.add('shake'); beep(180,.12,'sawtooth'); setTimeout(()=>hole.classList.remove('shake'),250);
-    }
-    scoreEl.textContent = score;
-  };
-
-  // نسمع على الهدف والحفرة (هتبوكس أكبر)
-  target.addEventListener('pointerdown', handleTap);
-  hole.addEventListener('pointerdown', (e)=>{
-    // لو ضغط على lip أو فراغ؛ خلّيه يعاملها كأنها الهدف
-    if(e.target===hole || e.target.classList.contains('lip')) handleTap(e);
-  });
-});
-
-/* منطق الظهور */
-function randomUp(){
-  const available = holes.filter(h=> h.querySelector('.target').dataset.state==='down' && h.querySelector('.target').dataset.hit!=='1');
-  if(available.length===0) return;
-  const hole = available[Math.floor(Math.random()*available.length)];
-  const t = hole.querySelector('.target');
-
-  // نوع الهدف
-  const badRate = 0.2 + Math.min(0.25, (GAME_DURATION-timeLeft)/GAME_DURATION * 0.25);
-  const isBad = Math.random() < badRate;
-  t.dataset.kind = isBad ? 'bad' : 'good';
-  t.textContent  = isBad ? '💣' : '📦';
-  t.classList.toggle('good', !isBad);
-  t.classList.toggle('bad',  isBad);
-
-  // اطلع
-  t.dataset.hit='0';
-  t.dataset.state='up';
-  t.classList.add('up');
-
-  // زمن الظهور (على الأقل 420ms)
-  const raw = 800 - Math.min(500, (GAME_DURATION-timeLeft)*12);
-  const visible = Math.max(420, raw);
-
-  setTimeout(()=>{
-    if(t.dataset.state==='up'){
-      t.dataset.state='down'; t.classList.remove('up');
-      t.dataset.graceUntil = String(Date.now()+GRACE_MS); // فترة سماح
-      setTimeout(()=>{ t.dataset.graceUntil='0'; }, GRACE_MS+30);
-    }
-  }, visible);
-}
-
-/* تشغيل/إيقاف */
-function startGame(){
-  if(playing) return;
-  playing=true; score=0; timeLeft=GAME_DURATION;
-  scoreEl.textContent='0'; timeEl.textContent=String(timeLeft);
-  finalEl.textContent=''; finalEl.className='result'; claimBox.style.display='none';
-
-  spawnTimer=setInterval(randomUp, 450);
-  tickTimer=setInterval(()=>{ timeLeft--; timeEl.textContent=String(timeLeft); if(timeLeft<=0) endGame(); },1000);
-}
-function endGame(){
-  clearInterval(spawnTimer); clearInterval(tickTimer);
-  spawnTimer=tickTimer=null; playing=false;
-
-  best=Math.max(best,score); localStorage.setItem('wap_best',String(best)); bestEl.textContent=best;
-
-  if(score>=WIN_THRESHOLD){
-    finalEl.textContent=`🎉 مبروك! حققت ${score} نقطة — تقدر تطلب جائزتك`; finalEl.classList.add('win');
-    const msg=encodeURIComponent(`أنا كسبت توصيله مجانية في لعبة Whack-a-Parcel — درجتي: ${score}`);
-    waBtn.href=`https://wa.me/201017908076?text=${msg}`; claimBox.style.display='flex';
-    beep(660,.12,'sine'); setTimeout(()=>beep(990,.14,'sine'),120);
-  }else{
-    finalEl.textContent=`انتهى الوقت! درجتك: ${score} — حاول توصل لـ ${WIN_THRESHOLD} 🎯`; finalEl.classList.add('lose'); beep(180,.14,'sawtooth');
-  }
-}
-
-/* شاشة البداية */
-const beginBtnEl=document.getElementById('beginBtn');
-const startBtnEl=document.getElementById('startBtn');
-beginBtnEl.addEventListener('click', ()=>{
-  audioInit(); beginBtnEl.style.display='none'; cdEl.style.display='block';
-  let n=3; cdEl.textContent=n; const iv=setInterval(()=>{ n--; cdEl.textContent=n>0?n:'انطلق!'; if(n<=0){ clearInterval(iv); setTimeout(()=>{ overlay.style.display='none'; startGame(); },300);} },700);
-});
-startBtnEl.addEventListener('click', ()=>{ if(playing) return; overlay.style.display='grid'; beginBtnEl.style.display='inline-block'; cdEl.style.display='none'; });
-
-/* تفعيل الصوت بعد أول تفاعل */
-['pointerdown','touchstart','click'].forEach(ev=>addEventListener(ev,audioInit,{once:true}));
-document.addEventListener('touchmove', e=>{ if(playing) e.preventDefault(); }, {passive:false});
+const GAME_DURATION=30,WIN_THRESHOLD=2500,GOOD_SCORE=100,BAD_SCORE=-50,GRACE_MS=150;
+const holes=[...document.querySelectorAll(".hole")];
+const scoreEl=q("#score"),bestEl=q("#best"),timeEl=q("#time"),overlay=q("#overlay"),
+beginBtn=q("#beginBtn"),cdEl=q("#cd"),finalEl=q("#final"),claimBox=q("#claimBox"),waBtn=q("#waBtn");
+function q(s){return document.querySelector(s);}
+let score=0,best=parseInt(localStorage.getItem("wap_best")||"0"),playing=false,timeLeft=GAME_DURATION;
+let spawnTimer,tickTimer;bestEl.textContent=best;
+let AC,ctx,outGain;
+function audioInit(){if(ctx)return;AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=new AC();outGain=ctx.createGain();outGain.gain.value=.15;outGain.connect(ctx.destination);}
+function beep(f=800,d=.08,t="square"){if(!ctx)return;const o=ctx.createOscillator(),g=ctx.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(outGain);const s=ctx.currentTime;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.6,s+.01);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.start(s);o.stop(s+d+.01);}
+holes.forEach(h=>{const t=h.querySelector(".target");t.dataset.state="down";t.dataset.kind="good";t.dataset.hit="0";t.dataset.graceUntil="0";
+const tap=e=>{e.preventDefault();if(!playing)return;const wasUp=t.dataset.state==="up"||Date.now()<+t.dataset.graceUntil;if(!wasUp)return;if(t.dataset.hit==="1")return;t.dataset.hit="1";t.dataset.state="down";t.classList.remove("up");t.classList.add("hit");setTimeout(()=>t.classList.remove("hit"),180);setTimeout(()=>t.dataset.hit="0",10);
+if(t.dataset.kind==="good"){score+=GOOD_SCORE;beep(900,.07,"square");}else{score=Math.max(0,score+BAD_SCORE);h.classList.add("shake");beep(180,.12,"sawtooth");setTimeout(()=>h.classList.remove("shake"),250);}
+scoreEl.textContent=score;};
+t.addEventListener("pointerdown",tap);h.addEventListener("pointerdown",e=>{if(e.target===h||e.target.classList.contains("lip"))tap(e);});});
+function randomUp(){const avail=holes.filter(h=>h.querySelector(".target").dataset.state==="down");if(!avail.length)return;
+const h=avail[Math.floor(Math.random()*avail.length)],t=h.querySelector(".target");const badRate=.2+Math.min(.25,(GAME_DURATION-timeLeft)/GAME_DURATION*.25);const isBad=Math.random()<badRate;
+t.dataset.kind=isBad?"bad":"good";t.textContent=isBad?"💣":"📦";t.classList.toggle("good",!isBad);t.classList.toggle("bad",isBad);
+t.dataset.hit="0";t.dataset.state="up";t.classList.add("up");
+const raw=800-Math.min(500,(GAME_DURATION-timeLeft)*12),visible=Math.max(420,raw);
+setTimeout(()=>{if(t.dataset.state==="up"){t.dataset.state="down";t.classList.remove("up");t.dataset.graceUntil=String(Date.now()+GRACE_MS);setTimeout(()=>{t.dataset.hit="0";t.dataset.graceUntil="0";},GRACE_MS+30);}},visible);}
+function startGame(){if(playing)return;playing=true;score=0;timeLeft=GAME_DURATION;scoreEl.textContent="0";timeEl.textContent=timeLeft;finalEl.textContent="";finalEl.className="result";claimBox.style.display="none";
+spawnTimer=setInterval(randomUp,450);tickTimer=setInterval(()=>{timeLeft--;timeEl.textContent=timeLeft;if(timeLeft<=0)endGame();},1000);}
+function endGame(){clearInterval(spawnTimer);clearInterval(tickTimer);playing=false;best=Math.max(best,score);localStorage.setItem("wap_best",best);bestEl.textContent=best;
+if(score>=WIN_THRESHOLD){finalEl.textContent=`🎉 مبروك! حققت ${score} نقطة — تقدر تطلب جائزتك`;finalEl.classList.add("win");
+const msg=encodeURIComponent(`أنا كسبت توصيله مجانية في لعبة Whack-a-Parcel — درجتي: ${score}`);waBtn.href=`https://wa.me/201017908076?text=${msg}`;claimBox.style.display="flex";beep(660,.12,"sine");setTimeout(()=>beep(990,.14,"sine"),120);}
+else{finalEl.textContent=`انتهى الوقت! درجتك: ${score} — حاول توصل لـ ${WIN_THRESHOLD} 🎯`;finalEl.classList.add("lose");beep(180,.14,"sawtooth");}}
+beginBtn.addEventListener("click",()=>{audioInit();beginBtn.style.display="none";cdEl.style.display="block";let n=3;cdEl.textContent=n;const iv=setInterval(()=>{n--;cdEl.textContent=n>0?n:"انطلق!";if(n<=0){clearInterval(iv);setTimeout(()=>{overlay.style.display="none";startGame();},300);}},700);});
+document.querySelector("#startBtn").addEventListener("click",()=>{if(playing)return;overlay.style.display="grid";beginBtn.style.display="inline-block";cdEl.style.display="none";});
+["pointerdown","touchstart","click"].forEach(ev=>addEventListener(ev,audioInit,{once:true}));
+document.addEventListener("touchmove",e=>{if(playing)e.preventDefault();},{passive:false});
 </script>
 </body>
 </html>
