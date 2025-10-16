@@ -1,242 +1,150 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fly Express — عجلة الحظ</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg1:#061a24;--bg2:#0b2836;--neon:#1df2c2;--text:#e8f1f5;--muted:#b7c3cc;
-    --ring:#1df2c28c; --accent:#2bd4ff; --btn:#1f9d55;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;font-family:"Cairo",system-ui,sans-serif;color:var(--text);
-    background:
-      radial-gradient(1200px 700px at 10% 10%, #0a2030 0%, transparent 60%),
-      radial-gradient(1200px 700px at 90% 90%, #051621 0%, transparent 60%),
-      conic-gradient(from 0deg at 50% 50%, #071420, #0c2434, #0a2d44, #0c2434, #071420);
-    background-size:140% 140%,140% 140%, 200% 200%;
-    animation:bgShift 22s ease-in-out infinite;
-    padding:20px;
-  }
-  @keyframes bgShift{
-    0%,100%{background-position:10% 10%, 90% 90%, 0% 50%}
-    50%{background-position:25% 20%, 75% 80%, 100% 50%}
-  }
-
-  .wrap{max-width:720px;margin:0 auto}
-  header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
-  header h1{margin:0;font-size:28px;font-weight:800}
-  header .sub{width:100%;color:var(--muted);margin-top:6px;font-weight:600}
-
-  /* الحاوية الزجاجية */
-  .card{
-    background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:18px;
-    backdrop-filter:blur(8px);
-    padding:18px;
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
-  }
-
-  /* عجلة الحظ */
-  .wheel-box{display:grid;place-items:center;gap:14px;margin-top:10px}
-  .wheel{
-    width:min(88vw,480px);aspect-ratio:1/1;border-radius:50%;
-    display:grid;place-items:center;position:relative;
-    background:
-      radial-gradient(circle at 50% 50%, #000 0 71.5%, transparent 71.6%),
-      conic-gradient(
-        #0fbbe8 0 72deg,   /* 0 */
-        #f5b041 72deg 144deg,/* 1 */
-        #8bd8ff 144deg 216deg,/* 2 */
-        #ff5a7c 216deg 288deg,/* حظ أوفر */
-        #27ae60 288deg 360deg /* 3 */
-      );
-    border:10px solid #111; /* إطار أسود داخلي */
-    box-shadow:0 0 0 10px var(--neon), 0 0 30px var(--ring);
-    transition:transform 6s cubic-bezier(.15,.8,.05,1);
-    will-change:transform;
-  }
-  /* السهم لتحت (هو المرجع للفوز) */
-  .pointer{
-    position:relative;width:0;height:0;margin-top:8px;
-    border-left:16px solid transparent;border-right:16px solid transparent;border-top:28px solid #ff477e;
-    filter:drop-shadow(0 8px 12px rgba(0,0,0,.45));
-  }
-
-  .btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-  button{
-    border:0;border-radius:999px;padding:12px 22px;font-weight:800;color:#022;cursor:pointer;
-    background:linear-gradient(135deg,#22e6a7,#24b6ff); color:#012; box-shadow:0 10px 22px rgba(0,0,0,.35);
-  }
+  body{margin:0;font-family:'Cairo',sans-serif;background:radial-gradient(circle at top left,#071a25 0%,#010b10 100%);color:#fff;text-align:center}
+  h1{margin:20px 0 10px;font-size:30px} h1 span{color:#00ffaa}
+  .container{max-width:420px;margin:auto;padding:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:15px;box-shadow:0 0 25px rgba(0,255,170,.15)}
+  #wheel-area{position:relative;margin:25px auto;width:300px;height:300px}
+  #wheelCanvas{width:100%;height:100%;border:8px solid #00ffaa;border-radius:50%;box-shadow:0 0 20px rgba(0,255,170,.4);background:#06131d}
+  .pointer{position:absolute;left:50%;bottom:-18px;transform:translateX(-50%) rotate(180deg);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:22px solid #ff004c;filter:drop-shadow(0 0 8px rgba(255,0,76,.6))}
+  button{background:linear-gradient(90deg,#00ffaa,#00a8ff);border:none;color:#000;font-weight:900;font-size:18px;padding:10px 20px;border-radius:30px;cursor:pointer;box-shadow:0 6px 20px rgba(0,255,170,.3)}
   button:disabled{opacity:.6;cursor:not-allowed}
-  .hint{color:var(--muted);text-align:center;margin-top:6px}
-  .result{
-    text-align:center;margin:18px auto 6px;font-size:22px;font-weight:800;color:#00ffc3;
-    text-shadow:0 6px 20px rgba(0,0,0,.35);
-  }
-  .status{
-    text-align:center;margin:6px auto 0;color:#cfe7f2;font-weight:700
-  }
-
-  .badge{display:inline-flex;align-items:center;gap:8px;border-radius:12px;padding:8px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
-
-  .call{
-    position:fixed;right:18px;top:18px;background:#ff6bd6;color:#101;padding:12px;border-radius:999px;
-    display:flex;align-items:center;gap:10px;font-weight:800;box-shadow:0 12px 26px rgba(0,0,0,.35);
-    text-decoration:none;
-  }
-  .call i{font-style:normal}
+  .info{margin-top:12px;font-weight:700;font-size:15px;color:#cbd5e1}
+  .note{margin-top:6px;font-weight:800}.note.ok{color:#00ffaa}.note.warn{color:#ffd166}
+  .result{margin-top:15px;font-weight:900;font-size:20px}.win{color:#00ffaa}.lose{color:#ff5c8a}
 </style>
 </head>
 <body>
-  <a class="call" href="tel:+201017908076" title="اتصل بنا">
-    <i>📞</i> تواصل
-  </a>
+<h1><span>عجلة الحظ</span> — Fly Express 🎡</h1>
 
-  <div class="wrap">
-    <header>
-      <h1>🎡 عجلة الحظ — <span style="color:#39f5c7">Fly Express</span></h1>
-      <div class="sub">لف العجلة واكسب جوائزك؛ <b>السهم لتحت</b> هو المرجع للفوز. المحاولات تتجدد تلقائيًا كل <b>خميس</b>.</div>
-    </header>
-
-    <div class="card">
-      <div class="wheel-box">
-        <div id="wheel" class="wheel" aria-label="Wheel of fortune"></div>
-        <div class="pointer" aria-hidden="true"></div>
-      </div>
-
-      <div class="btns">
-        <button id="spinBtn">🎯 لف العجلة</button>
-        <button id="howBtn" style="background:linear-gradient(135deg,#d4ecff,#a9e9c9);">❓ إزاي أكسب؟</button>
-      </div>
-
-      <div id="result" class="result"></div>
-      <div class="status">
-        <span class="badge">المحاولات المتبقية: <b id="triesLeft">0</b></span>
-      </div>
-      <p class="hint">💡 تلميح: النتيجة تظهر بعد ما العجلة توقف تمامًا.</p>
-    </div>
+<div class="container">
+  <div id="wheel-area">
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <div class="pointer"></div>
   </div>
 
+  <button id="spinBtn">🎯 لف العجلة</button>
+
+  <div class="info">لديك <span id="left">0</span> محاولات، تتجدد كل <b>خميس</b>.</div>
+  <div id="note" class="note"></div>
+  <div id="result" class="result"></div>
+</div>
+
 <script>
-/* ===== إعدادات عامة ===== */
-const segments = ['0','1','2','حظ أوفر','3'];               // ترتيب القطاعات مع ألوان الـ conic-gradient
-const ATTEMPTS_PER_WEEK = 10;                               // عدد المحاولات لكل أسبوع (كل خميس تتصفر)
-const PICK_DEG = 270;                                       // زاوية السهم لتحت = 270°
-const wheel = document.getElementById('wheel');
-const spinBtn = document.getElementById('spinBtn');
-const howBtn = document.getElementById('howBtn');
-const resultEl = document.getElementById('result');
-const triesLeftEl = document.getElementById('triesLeft');
+const canvas = document.getElementById("wheelCanvas");
+const ctx = canvas.getContext("2d");
+const spinBtn = document.getElementById("spinBtn");
+const result = document.getElementById("result");
+const leftEl = document.getElementById("left");
+const noteEl = document.getElementById("note");
 
-let currentRotation = 0;
+const sectors = ["1","2","3","حظ أوفر","0"];
+const colors  = ["#0aa8ff","#7cd9ff","#0f6dc2","#ff2c6f","#1db8a9"];
 
-/* ===== إدارة المحاولات (تتجدد كل خميس) ===== */
-function getWeekKey(d=new Date()){
-  // ISO week key (yyyy-Www)
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = (date.getUTCDay()+6)%7;
-  date.setUTCDate(date.getUTCDate()-dayNum+3);
-  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(),0,4));
-  const week = 1 + Math.round(((date-firstThursday)/86400000 - 3 + (firstThursday.getUTCDay()+6)%7)/7);
-  return `${date.getUTCFullYear()}-W${String(week).padStart(2,'0')}`;
-}
+let rotation = 0;             // زاوية دوران العجلة (راديان)
+let isSpinning = false;
 
-function isThursday(d=new Date()){
-  // الخميس = 4 (إذا كان الأحد = 0)
-  return d.getDay() === 4;
-}
+function drawWheel(){
+  const n = sectors.length;
+  const arc = 2*Math.PI / n;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  for(let i=0;i<n;i++){
+    const start = i*arc + rotation;
+    ctx.beginPath();
+    ctx.moveTo(150,150);
+    ctx.arc(150,150,140,start,start+arc);
+    ctx.fillStyle = colors[i];
+    ctx.fill();
 
-function loadTries(){
-  const key = 'wheel_tries_' + getWeekKey();
-  let left = Number(localStorage.getItem(key));
-  if (!Number.isInteger(left)) left = ATTEMPTS_PER_WEEK;
-  // إن كان اليوم الخميس ولم يتم فتح محاولات هذا الأسبوع بعد، أعِد التعيين
-  const openedKey = 'wheel_opened_' + getWeekKey();
-  const opened = localStorage.getItem(openedKey) === '1';
-  if (isThursday() && !opened){
-    left = ATTEMPTS_PER_WEEK;
-    localStorage.setItem(openedKey,'1');
-    localStorage.setItem(key, String(left));
-  } else {
-    localStorage.setItem(key, String(left));
+    // كتابة النص كجزء من العجلة (بيتحرك معاها)
+    ctx.save();
+    ctx.translate(150,150);
+    ctx.rotate(start + arc/2);
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 22px Cairo";
+    ctx.fillText(sectors[i],120,8);
+    ctx.restore();
   }
+}
+
+// مفاتيح الخميس + المحاولات
+function getThursdayKey(){ const d=new Date(),diff=(4-d.getDay()+7)%7,th=new Date(d.getFullYear(),d.getMonth(),d.getDate()+diff); return th.toISOString().split('T')[0]; }
+function todayIsThursday(){ return new Date().getDay()===4; }
+const DEBUG = location.search.includes("debug=1");
+
+function updateNote(left){
+  noteEl.className='note';
+  if(left>0){ noteEl.textContent=''; return; }
+  if(todayIsThursday()){ noteEl.textContent='خلصت محاولاتك لهذا الأسبوع ✅'; noteEl.classList.add('ok'); }
+  else { noteEl.textContent='محاولاتك خلصت — جرب الخميس الجاي ✨'; noteEl.classList.add('warn'); }
+}
+function loadChances(){
+  if(DEBUG){ localStorage.setItem("chances","99"); localStorage.setItem("key",getThursdayKey()); }
+  const cur = getThursdayKey();
+  const saved = localStorage.getItem("key");
+  let left = +localStorage.getItem("chances") || 0;
+  if(saved !== cur){ left = 10; localStorage.setItem("key",cur); }
+  localStorage.setItem("chances", left);
+  leftEl.textContent = left;
+  spinBtn.disabled = left<=0;
+  updateNote(left);
   return left;
 }
-
-function saveTries(left){
-  const key = 'wheel_tries_' + getWeekKey();
-  localStorage.setItem(key, String(left));
+function saveChances(n){
+  localStorage.setItem("chances",n);
+  leftEl.textContent = n;
+  spinBtn.disabled = n<=0;
+  updateNote(n);
 }
+let left = loadChances();
 
-function syncUI(){
-  const left = loadTries();
-  triesLeftEl.textContent = left;
-  spinBtn.disabled = left <= 0;
-}
+// زاوية السهم الثابت: أسفل الدائرة = π/2
+const POINTER_ANGLE = Math.PI/2;
 
-/* ===== دوران العجلة ===== */
 function spin(){
-  let left = loadTries();
-  if (left <= 0) {
-    resultEl.textContent = 'خلصت محاولاتك. جرّب الخميس الجاي ✨';
-    return;
-  }
+  if(isSpinning || left<=0) return;
+  isSpinning = true; spinBtn.disabled = true; result.textContent = "";
 
-  spinBtn.disabled = true;
-  resultEl.textContent = '';
+  const spins = 5 + Math.random()*5;               // عدد اللفات العشوائي
+  const finalAngle = rotation + spins * (2*Math.PI);
+  const duration = 4000;
+  const start = performance.now();
 
-  // زاوية عشوائية + دورات كاملة (5 إلى 8 دورات)
-  const extraSpins = 5 + Math.floor(Math.random()*4); // 5..8
-  const randomAngle = Math.random()*360;
-  const targetRotation = currentRotation + extraSpins*360 + randomAngle;
+  function animate(now){
+    const t = Math.min((now - start)/duration, 1);
+    const easeOut = 1 - Math.pow(1 - t, 3);
+    rotation = (finalAngle * easeOut) % (2*Math.PI);
+    drawWheel();
+    if(t<1){ requestAnimationFrame(animate); }
+    else{
+      // حساب القطاع الصحيح بناءً على زاوية السهم منسوبة لدوران العجلة
+      const n   = sectors.length;
+      const arc = 2*Math.PI / n;
+      const rel = (POINTER_ANGLE - (rotation % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI); // زاوية السهم داخل العجلة بعد الدوران
+      const index = Math.floor(rel / arc) % n;   // القطاع تحت السهم
 
-  // حرّك العجلة
-  currentRotation = targetRotation;
-  wheel.style.transform = `rotate(${currentRotation}deg)`;
+      const val = sectors[index];
+      left--; saveChances(left);
 
-  const segSize = 360/segments.length;
-
-  // بعد انتهاء الأنيميشن (6s في CSS)
-  setTimeout(()=>{
-    const rot = currentRotation % 360;
-    const selected = (PICK_DEG - rot + 360) % 360;
-
-    // أهم تعديل: نستخدم round بدل floor + تصحيح بالمود
-    const index = Math.round(selected / segSize) % segments.length;
-    const outcome = segments[index];
-
-    let msg = '';
-    if (outcome === 'حظ أوفر'){
-      msg = 'حظ أوفر! جرّب تاني 🍀';
-    } else {
-      const n = Number(outcome);
-      msg = `🎉 مبروك! كسبت ${n} توصيلة مجانية`;
+      if(val === "حظ أوفر"){
+        result.innerHTML = "😔 <span class='lose'>حظ أوفر! جرب تاني</span>";
+      }else{
+        result.innerHTML = `🎉 <span class='win'>مبروك! كسبت ${val} توصيلات مجانية</span>`;
+      }
+      isSpinning = false;
     }
-    resultEl.textContent = msg;
-
-    // خصم محاولة وتحديث الواجهة
-    left = Math.max(0, left - 1);
-    saveTries(left);
-    triesLeftEl.textContent = left;
-    spinBtn.disabled = left <= 0 ? true : false;
-  }, 6100);
+  }
+  requestAnimationFrame(animate);
 }
 
-/* ===== مساعدة قصيرة ===== */
-howBtn.addEventListener('click', ()=>{
-  alert('• لف العجلة واضبط عينك على السهم لتحت — هو المرجع.\n• لو وقف على 0 أو 1 أو 2 أو 3 يبقى ده عدد التوصيلات المجانية.\n• لو طلع "حظ أوفر" جرّب تاني.\n• المحاولات بتتجدد تلقائيًا كل يوم خميس.');
-});
-
-spinBtn.addEventListener('click', spin);
-syncUI();
+drawWheel();
+spinBtn.addEventListener("click", spin);
 </script>
 </body>
 </html>
