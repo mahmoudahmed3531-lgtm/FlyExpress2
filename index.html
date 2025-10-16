@@ -4,40 +4,32 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Fly Express — عجلة الحظ</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#071824;
-    --panel:#0d2433;
-    --neon:#00ffaa;
-    --neon2:#12b5ff;
-    --muted:#a9c0cf;
+    --neon:#00ffaa; --neon2:#12b5ff;
   }
   *{box-sizing:border-box}
   body{
-    margin:0;min-height:100dvh;
-    font-family:'Cairo',system-ui,sans-serif;
-    color:#e9f3fa;background:
+    margin:0;min-height:100dvh;font-family:'Cairo',system-ui,sans-serif;color:#e9f3fa;
+    background:
       radial-gradient(1100px 600px at 15% 15%, #0b1a27 0%, transparent 60%),
       radial-gradient(1100px 600px at 85% 85%, #081420 0%, transparent 60%),
       linear-gradient(160deg,#06131c,#081b27 60%,#06131c);
   }
-
-  .wrap{max-width:680px;margin:0 auto;padding:24px}
-  h1{
-    text-align:center;margin:12px 0 22px;font-size:34px;letter-spacing:.5px;
-    text-shadow:0 0 18px rgba(18,181,255,.35);
-  }
-  h1 i{filter:drop-shadow(0 0 6px rgba(0,255,170,.45))}
+  .wrap{max-width:720px;margin:0 auto;padding:22px}
+  h1{text-align:center;margin:10px 0 18px;font-size:32px;letter-spacing:.2px}
+  h1 span{color:var(--neon)}
   .board{
     margin:0 auto;background:rgba(255,255,255,.03);
     border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(8px);
-    border-radius:22px;padding:24px;box-shadow:0 18px 40px rgba(0,0,0,.35)
+    border-radius:22px;padding:22px;box-shadow:0 18px 40px rgba(0,0,0,.35)
   }
 
   .stage{position:relative;width:360px;height:360px;margin:0 auto}
-  /* العجلة نفسها */
+  /* العجلة */
   .wheel{
+    position:relative;
     width:100%;height:100%;border-radius:50%;
     border:10px solid var(--neon);
     box-shadow:0 0 24px rgba(0,255,170,.35), inset 0 0 28px rgba(18,181,255,.25);
@@ -50,8 +42,16 @@
         #0aa2a4 288deg 360deg    /* 0 */
       );
     transition:transform 6s cubic-bezier(.17,.8,.23,1.02);
+    overflow:hidden;
   }
-  /* السهم ثابت فوق وبيشاور لداخل الدائرة */
+  /* لابيل كل شريحة */
+  .slice-label{
+    position:absolute;left:50%;top:50%;
+    transform-origin:50% 50%;
+    font-weight:800;font-size:26px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.45);
+    pointer-events:none; /* علشان ما تمنع الضغط */
+  }
+  /* سهم ثابت فوق وباصص لداخل العجلة */
   .pointer{
     position:absolute;left:50%;top:-18px;transform:translateX(-50%);
     width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;
@@ -60,25 +60,24 @@
 
   .btn{
     margin:18px auto 0;display:block;cursor:pointer;border:0;
-    padding:12px 22px;border-radius:999px;font-weight:800;font-size:18px;
+    padding:12px 24px;border-radius:999px;font-weight:800;font-size:18px;
     color:#012430;background:linear-gradient(90deg,var(--neon),var(--neon2));
     box-shadow:0 14px 28px rgba(0,255,170,.25);transition:transform .12s ease,opacity .12s ease;
   }
   .btn:hover{transform:translateY(-2px)}
-  .btn:disabled{opacity:.55;cursor:not-allowed;filter:grayscale(.2)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
 
-  .info{margin-top:14px;text-align:center;color:var(--muted);font-weight:700}
-  .badge{display:inline-block;margin-top:8px;padding:6px 12px;border-radius:999px;
+  .info{margin-top:14px;text-align:center;color:#bcd1de;font-weight:700}
+  .badge{display:inline-block;margin-top:6px;padding:6px 12px;border-radius:999px;
     background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}
-  .result{margin-top:18px;text-align:center;font-size:20px;font-weight:800}
-
+  .result{margin-top:16px;text-align:center;font-size:20px;font-weight:800}
   .win{color:#00ffaa;text-shadow:0 0 12px rgba(0,255,170,.45)}
   .lose{color:#ff7aa6;text-shadow:0 0 10px rgba(255,0,100,.35)}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Fly Express – <span style="color:var(--neon)">عجلة الحظ</span> <i>🎡</i></h1>
+    <h1><span>عجلة</span> — Fly Express <span>الحظ</span> 🎡</h1>
 
     <div class="board">
       <div class="stage">
@@ -99,116 +98,89 @@
 
 <script>
 (() => {
-  // ————————————————————————————————
-  //   إعداد الشرائح (0 ، 1 ، 2 ، 3 ، حظ أوفر)
-  // ————————————————————————————————
-  const slices = ["1","2","3","حظ أوفر","0"]; // ترتيب الألوان في الCSS مطابق
-  const arc = 360 / slices.length;           // 72 درجة لكل شريحة
+  // الشرائح (وِفق ترتيب ألوان الـ conic-gradient)
+  const slices = ["1","2","3","حظ أوفر","0"];
+  const arc = 360 / slices.length;   // 72°
   const wheel = document.getElementById('wheel');
+
+  // نرسم لابيل لكل شريحة عند منتصفها
+  // نصف قطر النص ≈ 140px (360/2 - حدود)
+  const radius = 140;
+  slices.forEach((label, i) => {
+    const mid = i * arc + arc/2;         // زاوية منتصف الشريحة
+    const el = document.createElement('div');
+    el.className = 'slice-label';
+    el.textContent = label;
+    // نخلي النص دائمًا مستقيم: ندور للنقطة وبعدين نعمل translate للخارج ثم نلغي الدوران
+    el.style.transform = `rotate(${mid}deg) translateY(-${radius}px) rotate(${-mid}deg)`;
+    wheel.appendChild(el);
+  });
+
   const spinBtn = document.getElementById('spinBtn');
   const resultEl = document.getElementById('result');
   const leftEl = document.getElementById('left');
   const thNote = document.getElementById('thNote');
 
-  // ————————————————————————————————
-  //   نظام المحاولات: محاولتان تتجدد كل خميس
-  // ————————————————————————————————
+  // — المحاولات: 2 وتتجدد كل خميس —
   function thursdayKeyFor(date=new Date()){
-    // نحسب خميس هذا الأسبوع بنظام ISO (الإثنين بداية الأسبوع)
     const d = new Date(date); d.setHours(0,0,0,0);
-    const dayMon0 = (d.getDay()+6)%7; // 0=Mon..6=Sun
+    const dayMon0 = (d.getDay()+6)%7; // Mon=0
     const monday = new Date(d); monday.setDate(d.getDate()-dayMon0);
     const thursday = new Date(monday); thursday.setDate(monday.getDate()+3);
-    return thursday.toISOString().slice(0,10); // YYYY-MM-DD
+    return thursday.toISOString().slice(0,10);
   }
-
-  const KEY = 'spin_thursday_key';
-  const LEFT = 'spins_left';
+  const KEY='spin_thursday_key', LEFT='spins_left';
 
   function loadQuota(){
     const currentKey = thursdayKeyFor();
     const savedKey = localStorage.getItem(KEY);
     let left = Number(localStorage.getItem(LEFT) || 0);
-
-    if (savedKey !== currentKey){
-      // خميس جديد -> ندي محاولتين
-      left = 2;
-      localStorage.setItem(KEY, currentKey);
-      localStorage.setItem(LEFT, String(left));
-    }
-    updateUI(left);
-    return left;
+    if (savedKey !== currentKey){ left=2; localStorage.setItem(KEY,currentKey); }
+    localStorage.setItem(LEFT,String(left));
+    updateUI(left); return left;
   }
-
-  function saveQuota(left){
-    localStorage.setItem(LEFT, String(left));
-    updateUI(left);
-  }
-
-  function updateUI(left){
-    leftEl.textContent = left;
-    const today = new Date();
-    const isThursday = (today.getDay() === 4); // 0 Sun .. 4 Thu
-    thNote.innerHTML = isThursday
-      ? "اليوم الخميس — تم فتح المحاولات لهذا الأسبوع ✅"
-      : "ستتجدد المحاولات تلقائيًا يوم الخميس القادم ⏳";
-
-    spinBtn.disabled = (left <= 0);
+  function saveQuota(l){ localStorage.setItem(LEFT,String(l)); updateUI(l); }
+  function updateUI(l){
+    leftEl.textContent = l;
+    const isThu = (new Date().getDay()===4);
+    thNote.textContent = isThu? "اليوم الخميس — تم فتح المحاولات لهذا الأسبوع ✅"
+                              : "ستتجدد المحاولات تلقائيًا يوم الخميس القادم ⏳";
+    spinBtn.disabled = (l<=0);
   }
 
   let spinsLeft = loadQuota();
-  let isSpinning = false;
+  let busy=false;
 
-  // ————————————————————————————————
-  //   اللف واختيار الشريحة المطلوب
-  // ————————————————————————————————
   function spin(){
-    if (isSpinning) return;
-    if (spinsLeft <= 0){
-      resultEl.innerHTML = "<span class='lose'>⚠️ خلصت محاولاتك — استنى للخميس القادم</span>";
-      return;
-    }
-    isSpinning = true;
-    spinBtn.disabled = true;
-    resultEl.textContent = "";
+    if(busy) return;
+    if(spinsLeft<=0){ resultEl.innerHTML="<span class='lose'>⚠️ خلصت محاولاتك — استنى الخميس القادم</span>"; return; }
+    busy=true; spinBtn.disabled=true; resultEl.textContent="";
 
-    // نختار شريحة عشوائيّة (توزيع متساوي)
-    const index = Math.floor(Math.random() * slices.length);
+    // اختيار شريحة عشوائيًا
+    const idx = Math.floor(Math.random()*slices.length);
+    const targetMid = idx*arc + arc/2;
+    const turns = 6; // شكل
+    const finalDeg = (turns*360) + targetMid - 90; // -90 لأن السهم بالأعلى
 
-    // نخلي منتصف الشريحة ييجي تحت السهم (السهم فوق)
-    // conic-gradient يبدأ من 0deg على يمين الدائرة -> نطرح 90deg عشان نطابق أعلى الدائرة.
-    const targetDeg = (index * arc) + (arc / 2);     // منتصف الشريحة
-    const turns = 6; // عدد لفات كاملة شكلياً
-    const finalRotation = (turns * 360) + targetDeg - 90;
+    wheel.style.transform = `rotate(${finalDeg}deg)`;
 
-    wheel.style.transform = `rotate(${finalRotation}deg)`;
-
-    // بعد الانيميشن نعلن النتيجة
-    setTimeout(() => {
-      const label = slices[index];
-      let msg = "";
-
-      if (label === "حظ أوفر"){
+    setTimeout(()=>{
+      const label = slices[idx];
+      let msg="";
+      if(label==="حظ أوفر"){
         msg = "<span class='lose'>😔 حظ أوفر! جرب تاني</span>";
       }else{
         const n = Number(label);
-        if (n === 0){
-          msg = "<span class='win'>🎁 مبروك! كسبت 0 توصيلات (ولا يهمك جرب تاني) </span>";
-        }else{
-          const word = (n===1) ? "توصيلة" : "توصيلات";
-          msg = `<span class='win'>🎉 مبروك! كسبت ${n} ${word} مجانية</span>`;
-        }
+        const word = (n===1)? "توصيلة" : "توصيلات";
+        msg = `<span class='win'>🎉 مبروك! كسبت ${n} ${word} مجانية</span>`;
       }
       resultEl.innerHTML = msg;
 
-      // نقص المحاولات
-      spinsLeft = Math.max(0, spinsLeft - 1);
+      spinsLeft = Math.max(0,spinsLeft-1);
       saveQuota(spinsLeft);
-
-      isSpinning = false;
-    }, 6100); // أطول شوية من transition
+      busy=false;
+    }, 6100);
   }
-
   spinBtn.addEventListener('click', spin);
 })();
 </script>
