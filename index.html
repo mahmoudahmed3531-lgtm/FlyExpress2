@@ -1,319 +1,374 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Fly Express — Whack-a-Parcel</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800;900&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Whack-a-Parcel — Fly Express</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --wrap-max: 560px;          /* أقصى عرض للكارت */
-    --board-min: 250px;         /* أقل عرض للوحة */
-    --board-max: 360px;         /* أكبر عرض للوحة */
-    --gap-min: 10px;
-    --gap-max: 16px;
-    --pad-min: 10px;
-    --pad-max: 16px;
-    --brand: #8a5cf6;
-    --accent: #00ffae;
-    --muted: #9fb2c7;
-    --danger:#ff4d7a;
+    --glass: rgba(255,255,255,.06);
+    --muted:#b8c0c9;
+    --ok:#00ffaa;
+    --bad:#ff4d7a;
+    --title:#21f5b3;
+    --maxw: 640px;            /* عرض الكادر */
+    --gap: 12px;              /* المسافات بين الخانات */
+    --hole: min(28vw, 118px); /* حجم الخانة responsive */
   }
-
   *{box-sizing:border-box}
-  html,body{height:100%}
   body{
-    margin:0;
-    font-family:'Cairo',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-    color:#eaf2fb;
+    margin:0; font-family:'Cairo',system-ui,sans-serif; color:#eaf1f6;
+    min-height:100svh; display:flex; align-items:center; justify-content:center; padding:18px;
     background:
-      radial-gradient(800px 400px at 10% 10%, #0e2231 0%, transparent 60%),
-      radial-gradient(900px 500px at 90% 100%, #041822 0%, transparent 60%),
-      conic-gradient(from 0deg, #021017, #031a25, #072a3c, #031a25, #021017);
+      radial-gradient(1100px 600px at 10% 10%, #062133 0%, transparent 65%),
+      radial-gradient(1100px 600px at 90% 90%, #00131c 0%, transparent 65%),
+      conic-gradient(from 0deg at 50% 50%, #021018, #07273a, #031c2b, #021018);
     background-size:140% 140%,140% 140%,200% 200%;
-    animation:move1 18s ease-in-out infinite, move2 20s ease-in-out infinite, hue 36s linear infinite;
+    animation: bg1 16s ease-in-out infinite, bg2 18s ease-in-out infinite, hue 32s linear infinite;
   }
-  @keyframes move1 {0%,100%{background-position:10% 10%, 90% 100%, 0% 50%} 50%{background-position:25% 15%, 75% 85%, 100% 50%}}
-  @keyframes move2 {0%,100%{background-position:10% 10%, 90% 100%, 0% 50%} 50%{background-position:15% 25%, 85% 75%, 100% 50%}}
-  @keyframes hue   {0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
+  @keyframes bg1{0%,100%{background-position:10% 10%,90% 90%,0% 50%}50%{background-position:30% 20%,70% 80%,100% 50%}}
+  @keyframes bg2{0%,100%{background-position:10% 10%,90% 90%,0% 50%}50%{background-position:15% 25%,85% 75%,100% 50%}}
+  @keyframes hue{0%{filter:hue-rotate(0)}100%{filter:hue-rotate(360deg)}}
 
-  .wrap{max-width:var(--wrap-max); margin:22px auto; padding:0 14px}
-  .card{
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 22px;
-    box-shadow: 0 18px 50px rgba(0,0,0,.28);
-    overflow: hidden;
+  .frame{
+    width:100%; max-width:var(--maxw); border-radius:22px; padding:18px;
+    background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 18px 50px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.05);
   }
+  h1{margin:0 0 6px; font-size:30px; font-weight:900; text-align:center}
+  h1 .brand{color:var(--title)}
+  .sub{margin:4px auto 14px; text-align:center; color:#cfe2ee}
 
-  header{padding:18px 18px 6px}
-  header h1{margin:0 0 6px; font-size:clamp(24px, 6vw, 38px); font-weight:900}
-  header h1 .fx{color:var(--brand)}
-  header p{margin:6px 0 0; color:var(--muted); font-weight:700; font-size:clamp(13px,3.4vw,16px)}
-
-  .stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding:12px 14px 0}
-  .stat{background: rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:12px; text-align:center}
-  .stat .v{font-size:clamp(20px,5.8vw,28px); font-weight:900}
-  .stat .k{font-size:12px; color:var(--muted); margin-top:4px}
-
-  .game-wrap{max-width:var(--wrap-max); margin-inline:auto; padding:12px 14px 18px}
-  .board{
-    width: clamp(var(--board-min), 92vw, var(--board-max));
-    aspect-ratio: 1/1;
-    margin: 10px auto 14px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap: clamp(var(--gap-min), 2.6vw, var(--gap-max));
-    padding: clamp(var(--pad-min), 2.6vw, var(--pad-max));
-    background: rgba(0,0,0,.28);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:18px;
-    box-shadow: inset 0 10px 24px rgba(0,0,0,.35);
+  .stats{display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap}
+  .stat{
+    flex:1 1 140px; background:var(--glass); border:1px solid rgba(255,255,255,.08);
+    padding:10px 12px; border-radius:14px; text-align:center; box-shadow:0 10px 24px rgba(0,0,0,.25);
   }
-  .cell{
-    position:relative;
-    height:auto; aspect-ratio:1/1;
-    border-radius:18px;
-    background:linear-gradient(180deg,#0f1d28,#0a141c);
-    border:1px solid rgba(255,255,255,.05);
-    overflow:hidden;
+  .stat .v{font-size:20px; font-weight:900}
+  .stat .k{font-size:12px; color:var(--muted)}
+  .stat .btn{width:100%}
+
+  .board{margin-top:12px; background:rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.07);
+         border-radius:16px; padding:14px}
+  .row{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--gap)}
+  .hole{
+    position:relative; height:var(--hole); border-radius:16px;
+    background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.35));
+    border:1px solid rgba(255,255,255,.07);
+    box-shadow: inset 0 12px 24px rgba(0,0,0,.35), 0 12px 28px rgba(0,0,0,.3);
+    overflow:hidden; touch-action:none;
   }
 
-  /* عناصر اللعبة */
-  .item{
-    position:absolute; inset:8%;
-    border-radius:14px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-    font-weight:900; letter-spacing:.3px;
-    box-shadow:0 10px 24px rgba(0,0,0,.35);
-    user-select:none; -webkit-tap-highlight-color: transparent;
-    animation: pop-in .18s ease-out both;
+  /* العنصر */
+  .target{
+    --t: calc(var(--hole) * 0.56);             /* حجم العنصر نسبة للخانة */
+    position:absolute; left:50%;
+    bottom: calc(var(--hole) * -0.9);          /* مختفي تحت الخانة */
+    transform:translateX(-50%);
+    width:var(--t); height:var(--t); border-radius:16px;
+    line-height:var(--t); text-align:center; font-size:calc(var(--t) * 0.46);
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), rgba(255,255,255,.05));
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow: 0 12px 26px rgba(0,0,0,.35);
+    transition: bottom .12s ease, transform .12s ease;
+    user-select:none;
   }
-  .parcel{ background:linear-gradient(180deg,#1cc5a6,#0aa07f); color:#032c27; }
-  .bomb  { background:linear-gradient(180deg,#ff6a95,#ff316b); color:#2e0713; }
-  .bonus { background:linear-gradient(180deg,#53a6ff,#1d7cff); color:#041a33; }
+  .target.up{ bottom: calc(var(--hole) * 0.16); } /* بيطلع لفوق شوية */
+  .target.hit{ animation: pop .18s ease; }
+  @keyframes pop{0%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.1)}100%{transform:translateX(-50%) scale(1)}}
+  .hole.shake{ animation: shake .18s ease; }
+  @keyframes shake{0%,100%{transform:translateX(0)}50%{transform:translateX(2px)}}
 
-  .item .emoji{font-size:clamp(22px, 8vw, 28px)}
-  .item .pts  {font-size:clamp(12px, 3.8vw, 14px); opacity:.85}
-
-  /* انيميشن الطلوع/النزول */
-  @keyframes pop-in   { from{ transform:translateY(18px) scale(.92); opacity:.0 } to{ transform:translateY(0) scale(1); opacity:1 } }
-  @keyframes pop-out  { from{ transform:translateY(0) scale(1);   opacity:1 }   to{ transform:translateY(18px) scale(.92); opacity:.0 } }
-  .pop-out{ animation: pop-out .16s ease-in forwards }
-
-  .controls{display:flex; gap:10px; justify-content:center; padding:8px 14px 18px}
-  .btn{border:none; cursor:pointer; font-weight:900; color:#051016; background:linear-gradient(90deg,#ff73e1,#ffb5e8);
-       padding:clamp(10px,2.8vw,14px) clamp(16px,4vw,22px); border-radius:18px; box-shadow:0 10px 26px rgba(0,0,0,.35)}
-  .btn.secondary{background:linear-gradient(90deg,#bfffe9,#8bf7d4)}
+  .actions{display:flex; gap:10px; justify-content:center; margin:12px 0 4px}
+  .btn{
+    background:linear-gradient(90deg,#00ffaa,#00a8ff); color:#001316; font-weight:900;
+    padding:10px 16px; border:none; border-radius:999px; cursor:pointer;
+    box-shadow:0 10px 28px rgba(0,255,170,.28); transition:transform .1s ease; font-size:15px;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:linear-gradient(90deg,#d3f3ff,#b4ffd0); color:#003b35}
   .btn:disabled{opacity:.6; cursor:not-allowed}
 
-  .goal{padding:0 14px 18px; text-align:center; color:var(--muted); font-weight:800}
-  .goal strong{color:#fff}
+  .result{margin:10px 0 4px; text-align:center; font-weight:900}
+  .result.win{color:var(--ok)} .result.lose{color:var(--bad)}
 
-  .toast{margin:8px auto 16px; max-width:var(--wrap-max); text-align:center; font-weight:900; color:#ffd1dc; display:none}
-  .toast.show{display:block}
+  /* Overlay البداية */
+  #overlay{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.5); backdrop-filter: blur(3px); z-index:30;}
+  .startBox{background:rgba(10,20,28,.9); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:18px; text-align:center;
+            box-shadow:0 24px 50px rgba(0,0,0,.45); width:min(420px,92vw)}
+  #cd{font-size:40px; font-weight:900; margin-top:8px; color:#fff}
 
-  footer{padding:14px; text-align:center; color:#9fb2c7; font-size:12px}
+  #claimBox{display:none; gap:10px; justify-content:center; margin-top:8px}
+  .note{color:var(--muted); text-align:center; font-weight:700; margin-top:6px}
 
-  @media (max-width:340px){
-    :root{ --board-min: 220px }
-    .cell{ border-radius:14px }
+  /* موبايلات أضيق */
+  @media(max-width:420px){
+    :root{ --hole: min(30vw, 104px); }
+    h1{font-size:26px}
+    .sub{font-size:14px}
   }
 </style>
 </head>
 <body>
 
-<div class="wrap">
-  <div class="card">
-    <header>
-      <h1><span class="fx">Fly Express</span> — Whack-a-Parcel</h1>
-      <p>اضرب الطرد الصح <b>(+100)</b> وتجنب المزيف <b>(−50)</b> وخد بالك من البونص! عندك <b>30 ثانية</b>. <span style="color:#ffd166">الهدف: +4000 نقطة</span> 🎁</p>
-    </header>
+<div class="frame">
+  <h1><span class="brand">Fly Express</span> — Whack-a-Parcel</h1>
+  <div class="sub">اضرب الطرد الصح <b>(+100)</b> وتجنّب المزيف <b>(−50)</b>. عندك <b>30 ثانية</b>. الهدف: <b>4000+</b> نقطة 🎁</div>
 
-    <div class="stats">
-      <div class="stat"><div class="v" id="time">0</div><div class="k">الوقت (ث)</div></div>
-      <div class="stat"><div class="v" id="score">0</div><div class="k">النقاط</div></div>
-      <div class="stat"><div class="v" id="best">0</div><div class="k">أعلى نتيجة</div></div>
-    </div>
-
-    <div class="game-wrap">
-      <div class="board" id="board">
-        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-      </div>
-
-      <div class="controls">
-        <button class="btn" id="startBtn">🚀 ابدأ</button>
-        <button class="btn secondary" id="howBtn">؟ إزاي أكسب</button>
-      </div>
-
-      <div class="goal">نصيحة: اضغط على فتحة فاضية يختفي العنصر أسرع. هدفك <strong>4000+</strong> نقطة.</div>
-      <div class="toast" id="toast"></div>
-    </div>
+  <div class="stats">
+    <div class="stat"><div class="v" id="time">30</div><div class="k">الوقت (ث)</div></div>
+    <div class="stat"><div class="v" id="score">0</div><div class="k">النقاط</div></div>
+    <div class="stat"><div class="v" id="best">0</div><div class="k">أعلى نتيجة</div></div>
+    <div class="stat"><button class="btn" id="startBtn">ابدأ 🚀</button></div>
   </div>
 
-  <footer>© Fly Express</footer>
+  <div class="board">
+    <div class="row">
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+      <div class="hole"><div class="target">📦</div></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn secondary" id="infoBtn">إزاي أكسب؟</button>
+      <button class="btn" id="beginBtn" style="display:none">ابدأ الآن</button>
+    </div>
+
+    <div id="claimBox">
+      <a class="btn" id="waBtn" href="#" target="_blank" rel="noopener">اطلب جائزتك عبر واتساب 🎁</a>
+    </div>
+
+    <div id="final" class="result"></div>
+    <div class="note">نصيحة: الضغط على فتحة فاضية يخصم نقاط!</div>
+  </div>
+</div>
+
+<!-- شاشة البداية -->
+<div id="overlay">
+  <div class="startBox">
+    <div style="font-weight:900;font-size:20px;margin-bottom:6px">جاهز تبدأ؟</div>
+    <div style="color:#cfe2ee">هيظهر عداد 3..1.. انطلق — فعّل الصوت لو تحب تأثيرات!</div>
+    <div id="cd">3</div>
+    <div style="margin-top:10px">
+      <button class="btn" id="goBtn">ابدأ</button>
+    </div>
+  </div>
 </div>
 
 <script>
-  // عناصر DOM
-  const board   = document.getElementById('board');
-  const cells   = Array.from(board.querySelectorAll('.cell'));
-  const startBtn= document.getElementById('startBtn');
-  const howBtn  = document.getElementById('howBtn');
-  const timeEl  = document.getElementById('time');
-  const scoreEl = document.getElementById('score');
-  const bestEl  = document.getElementById('best');
-  const toast   = document.getElementById('toast');
+/* ========= إعدادات عامة ========= */
+const GAME_DURATION = 30;
+const WIN_THRESHOLD = 4000;
 
-  // حالة اللعبة
-  let running = false;
-  let timeLeft = 30;
-  let score = 0;
-  let best = Number(localStorage.getItem('fx_best')||0);
-  bestEl.textContent = best.toString();
+// نقاط الضرب
+const GOOD_SCORE = 100;
+const BAD_SCORE  = -50;
+const EMPTY_TAP_PENALTY = -30;
 
-  // تايمرز
-  let tickTimer = null;
-  let spawnTimer = null;
-  let difficultyTimer = null;
+// الصعوبة المتدرجة
+const DIFF = {
+  baseSpawn: 480,
+  minSpawn:  240,
+  baseVisible: 650,
+  minVisible: 300,
+  badStart: 0.25,
+  badEnd:   0.55,
+  maxConcurrentStart: 1,
+  maxConcurrentEnd:   3,
+  shrinkStart: 1.00,
+  shrinkEnd:   0.82,
+  graceMs: 150
+};
 
-  // صعوبة (زي النسخة اللي عجبتك) + responsive sizing من النسخة الأخيرة
-  let spawnInterval = 650;  // سرعتها تزيد تدريجياً
-  let itemLifetime  = 900;  // أقل = أصعب
-  let maxActive     = 3;    // يزيد تدريجياً لحد 5
-  const goalScore   = 4000;
+/* ========= عناصر DOM ========= */
+const holes   = [...document.querySelectorAll(".hole")];
+const scoreEl = document.querySelector("#score");
+const bestEl  = document.querySelector("#best");
+const timeEl  = document.querySelector("#time");
+const overlay = document.querySelector("#overlay");
+const startBtn= document.querySelector("#startBtn");
+const beginBtn= document.querySelector("#beginBtn");
+const goBtn   = document.querySelector("#goBtn");
+const cdEl    = document.querySelector("#cd");
+const finalEl = document.querySelector("#final");
+const claimBox= document.querySelector("#claimBox");
+const waBtn   = document.querySelector("#waBtn");
+const infoBtn = document.querySelector("#infoBtn");
 
-  const hitCooldown = 180; // منع الدبل-تاب سريع
+/* ========= صوتيات ========= */
+let ctx, AC, outGain;
+function audioInit(){ if(ctx) return;
+  AC = window.AudioContext||window.webkitAudioContext; if(!AC) return;
+  ctx = new AC(); outGain = ctx.createGain(); outGain.gain.value=.18; outGain.connect(ctx.destination);
+}
+function beep(f=800,d=.08,t="square"){ if(!ctx) return;
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.type=t; o.frequency.value=f; o.connect(g); g.connect(outGain);
+  const s=ctx.currentTime; g.gain.setValueAtTime(.0001,s);
+  g.gain.exponentialRampToValueAtTime(.6,s+.01);
+  g.gain.exponentialRampToValueAtTime(.0001,s+d);
+  o.start(s); o.stop(s+d+.01);
+}
 
-  const rpick = arr => arr[Math.floor(Math.random()*arr.length)];
-  const nowms = () => performance.now();
+/* ========= حالة اللعبة ========= */
+let score=0, best=parseInt(localStorage.getItem("wap_best")||"0");
+let playing=false, timeLeft=GAME_DURATION;
+let spawnLoop, tickTimer;
+bestEl.textContent = best;
 
-  function showToast(msg, color='#ffd1dc'){
-    toast.textContent = msg;
-    toast.style.color = color;
-    toast.classList.add('show');
-    setTimeout(()=>toast.classList.remove('show'), 1600);
-  }
+/* ========= تهيئة الفتحات ========= */
+holes.forEach(h=>{
+  const t=h.querySelector(".target");
+  t.dataset.state="down"; t.dataset.kind="good";
+  t.dataset.hit="0"; t.dataset.graceUntil="0";
 
-  function reset(){
-    running=false; timeLeft=30; score=0;
-    spawnInterval=650; itemLifetime=900; maxActive=3;
-    timeEl.textContent='0'; scoreEl.textContent='0';
-    clearTimers(); clearCells(); startBtn.disabled=false;
-  }
-  function clearCells(){ cells.forEach(c=>{ c.innerHTML=''; c.dataset.locked=''; }); }
-  function clearTimers(){ [tickTimer,spawnTimer,difficultyTimer].forEach(t=>t&&clearInterval(t)); tickTimer=spawnTimer=difficultyTimer=null; }
+  const hit = (kind)=>{
+    if(kind==="good"){ score+=GOOD_SCORE; beep(920,.07,"square"); }
+    else{ score=Math.max(0,score+BAD_SCORE); h.classList.add("shake"); beep(180,.12,"sawtooth"); setTimeout(()=>h.classList.remove("shake"),250); }
+    scoreEl.textContent=score;
+  };
 
-  // عنصر جديد + انيميشن الطلوع/النزول
-  function createItem(){
-    const roll=Math.random();
-    let kind='parcel';                        // 62%
-    if(roll>0.74 && roll<=0.88) kind='bomb';  // 14%
-    else if(roll>0.88) kind='bonus';          // 12%
+  const onTap = (e)=>{
+    e.preventDefault(); if(!playing) return;
+    const wasUp = t.dataset.state==="up" || Date.now()<+t.dataset.graceUntil;
+    if(!wasUp) return;
+    if(t.dataset.hit==="1") return;
+    t.dataset.hit="1";
+    t.dataset.state="down"; t.classList.remove("up");
+    t.classList.add("hit"); setTimeout(()=>t.classList.remove("hit"),180);
+    setTimeout(()=>t.dataset.hit="0",10);
+    hit(t.dataset.kind);
+  };
 
-    const el=document.createElement('div');
-    el.className=`item ${kind}`;
-    el.innerHTML = kind==='parcel'
-      ? `<div class="emoji">📦</div><div class="pts">+100</div>`
-      : kind==='bomb'
-        ? `<div class="emoji">💣</div><div class="pts">−50</div>`
-        : `<div class="emoji">⚡️</div><div class="pts">+150</div>`;
-    el.dataset.kind=kind;
-    el.dataset.born=nowms();
-
-    let tapped=false;
-    const onTap=(ev)=>{
-      ev.stopPropagation();
-      if(tapped) return; tapped=true;
-      const parent=el.parentElement; parent.dataset.locked='1';
-
-      if(kind==='parcel') score+=100;
-      else if(kind==='bomb') score-=50;
-      else score+=150;
-
-      scoreEl.textContent=String(score);
-      // انيميشن خروج
-      el.classList.add('pop-out');
-      setTimeout(()=>{ if(parent && el.parentElement===parent) parent.removeChild(el); parent.dataset.locked=''; }, hitCooldown);
-    };
-    el.addEventListener('click', onTap, {passive:true});
-    el.addEventListener('touchstart', onTap, {passive:true});
-    return el;
-  }
-
-  function activeCount(){ return cells.reduce((a,c)=>a+(c.firstElementChild?1:0),0); }
-
-  function loopSpawn(){
-    if(!running) return;
-    const t=nowms();
-    // اخفاء العناصر المنتهية بعمرها بانيميشن نزول
-    cells.forEach(c=>{
-      const it=c.firstElementChild;
-      if(!it) return;
-      const born=Number(it.dataset.born||t);
-      if(t-born>itemLifetime){
-        it.classList.add('pop-out');
-        setTimeout(()=>{ if(c.firstElementChild===it) c.removeChild(it); }, 150);
-      }
-    });
-    // إضافة عناصر حتى الحد الأقصى
-    const room=Math.max(0, maxActive - activeCount());
-    for(let i=0;i<room;i++){
-      const empty=cells.filter(c=>!c.firstElementChild && !c.dataset.locked);
-      if(!empty.length) break;
-      rpick(empty).appendChild(createItem());
+  const onHoleTap = (e)=>{
+    if(!playing) return;
+    if(t.dataset.state!=="up" && Date.now()>+t.dataset.graceUntil){
+      score=Math.max(0,score+EMPTY_TAP_PENALTY);
+      scoreEl.textContent=score;
+      h.classList.add("shake"); beep(220,.08,"triangle");
+      setTimeout(()=>h.classList.remove("shake"),180);
+    } else {
+      onTap(e);
     }
-  }
+  };
 
-  // ضغط على فتحة فاضية = يخفي اللي فيها أسرع (سلوك النسخة السابقة)
-  cells.forEach(c=>{
-    c.addEventListener('click', ()=>{
-      if(!running) return;
-      const it=c.firstElementChild;
-      if(it){
-        it.classList.add('pop-out');
-        setTimeout(()=>{ if(c.firstElementChild===it) c.removeChild(it); }, 120);
+  t.addEventListener("pointerdown", onTap);
+  h.addEventListener("pointerdown", onHoleTap);
+});
+
+/* ========= صعوبة متدرجة ========= */
+const prog = ()=> 1 - (timeLeft/GAME_DURATION);
+function difficultyNow(){
+  const p = prog();
+  return {
+    spawn:   Math.round( DIFF.baseSpawn   - (DIFF.baseSpawn - DIFF.minSpawn)*p ),
+    visible: Math.round( DIFF.baseVisible - (DIFF.baseVisible - DIFF.minVisible)*p ),
+    badRate: DIFF.badStart + (DIFF.badEnd - DIFF.badStart)*p,
+    maxConcurrent: Math.round( DIFF.maxConcurrentStart + (DIFF.maxConcurrentEnd - DIFF.maxConcurrentStart)*p ),
+    scale: DIFF.shrinkStart - (DIFF.shrinkStart - DIFF.shrinkEnd)*p
+  };
+}
+
+function spawnLoopTick(){
+  if(!playing) return;
+  const {spawn, visible, badRate, maxConcurrent, scale} = difficultyNow();
+
+  const ups = holes.filter(h=>h.querySelector(".target").dataset.state==="up");
+  const canSpawn = Math.max(0, maxConcurrent - ups.length);
+
+  for(let i=0; i<canSpawn; i++){
+    const downHoles = holes.filter(h=>h.querySelector(".target").dataset.state==="down");
+    if(!downHoles.length) break;
+    const h = downHoles[Math.floor(Math.random()*downHoles.length)];
+    const t = h.querySelector(".target");
+
+    const isBad = Math.random() < badRate;
+    t.dataset.kind = isBad ? "bad" : "good";
+    t.textContent  = isBad ? "💣" : "📦";
+    t.style.transform = `translateX(-50%) scale(${scale})`;
+
+    t.dataset.hit="0";
+    t.dataset.state="up";
+    t.classList.add("up");
+
+    setTimeout(()=>{
+      if(t.dataset.state==="up"){
+        t.dataset.state="down";
+        t.classList.remove("up");
+        t.dataset.graceUntil = String(Date.now()+DIFF.graceMs);
+        setTimeout(()=>{ t.dataset.hit="0"; t.dataset.graceUntil="0"; }, DIFF.graceMs+30);
       }
-    }, {passive:true});
-  });
-
-  function bumpDifficulty(){
-    spawnInterval=Math.max(360, spawnInterval-40);
-    itemLifetime =Math.max(550, itemLifetime-35);
-    if(maxActive<5) maxActive+=1;
-    if(spawnTimer) clearInterval(spawnTimer);
-    spawnTimer=setInterval(loopSpawn, spawnInterval);
+    }, visible);
   }
 
-  function tick(){
-    if(!running) return;
-    timeLeft--; timeEl.textContent=String(timeLeft);
+  spawnLoop = setTimeout(spawnLoopTick, spawn);
+}
+
+/* ========= بداية/نهاية ========= */
+function startGame(){
+  if(playing) return;
+  playing = true;
+  score = 0; timeLeft = GAME_DURATION;
+  scoreEl.textContent="0"; timeEl.textContent=timeLeft;
+  finalEl.textContent=""; finalEl.className="result"; claimBox.style.display="none";
+
+  spawnLoopTick();
+  tickTimer = setInterval(()=>{
+    timeLeft--; timeEl.textContent=timeLeft;
     if(timeLeft<=0) endGame();
+  },1000);
+}
+
+function endGame(){
+  clearTimeout(spawnLoop); clearInterval(tickTimer); playing=false;
+  best = Math.max(best, score); localStorage.setItem("wap_best", best); bestEl.textContent=best;
+
+  if(score>=WIN_THRESHOLD){
+    finalEl.textContent=`🎉 مبروك! درجتك ${score} — تقدر تطلب جائزتك 🎁`;
+    finalEl.classList.add("win");
+    const msg=encodeURIComponent(`أنا كسبت توصيله مجانية في لعبة Whack-a-Parcel — درجتي: ${score}`);
+    waBtn.href=`https://wa.me/201017908076?text=${msg}`; claimBox.style.display="flex";
+    beep(660,.12,"sine"); setTimeout(()=>beep(990,.14,"sine"),120);
+  } else {
+    finalEl.textContent=`انتهى الوقت! درجتك: ${score} — معلش حاول تاني يمكن تكسب 😂`;
+    finalEl.classList.add("lose"); beep(180,.14,"sawtooth");
   }
+}
 
-  function endGame(){
-    running=false; clearTimers(); clearCells(); startBtn.disabled=false;
-    if(score>best){ best=score; localStorage.setItem('fx_best', String(best)); bestEl.textContent=String(best); }
-    if(score>=goalScore) showToast(`🎉 جامد! عدّيت الهدف (${goalScore}+). نتيجتك: ${score}`, '#9effc7');
-    else showToast(`انتهى الوقت! درجتك: ${score} — معلش حاول تاني يمكن تكسب 😂`, '#ffd1dc');
-  }
+/* ========= واجهة البداية ========= */
+startBtn.addEventListener("click",()=>{
+  if(playing) return;
+  overlay.style.display="grid";
+  beginBtn.style.display="inline-block";
+  document.querySelector("#cd").style.display="none";
+});
+beginBtn.addEventListener("click",()=>{
+  audioInit();
+  beginBtn.style.display="none";
+  document.querySelector("#cd").style.display="block";
+  let n=3; cdEl.textContent=n;
+  const iv=setInterval(()=>{
+    n--; cdEl.textContent = n>0 ? n : "انطلق!";
+    if(n<=0){ clearInterval(iv); setTimeout(()=>{ overlay.style.display="none"; startGame(); },300); }
+  },700);
+});
+goBtn.addEventListener("click",()=>{ overlay.style.display="none"; startGame(); });
 
-  function start(){
-    reset();
-    running=true; startBtn.disabled=true;
-    timeLeft=30; timeEl.textContent='30'; score=0; scoreEl.textContent='0';
-    loopSpawn();
-    spawnTimer=setInterval(loopSpawn, spawnInterval);
-    tickTimer=setInterval(tick,1000);
-    difficultyTimer=setInterval(bumpDifficulty,5000);
-  }
+["pointerdown","touchstart","click"].forEach(ev=>addEventListener(ev,audioInit,{once:true}));
+document.addEventListener("touchmove",e=>{ if(playing) e.preventDefault(); },{passive:false});
 
-  startBtn.addEventListener('click', start);
-  howBtn.addEventListener('click', ()=> showToast('📌 الطرد +100، القنبلة −50، البونص +150 — الهدف 4000+', '#bfe9ff'));
-
-  reset();
+infoBtn.addEventListener("click",()=>{
+  alert("اضرب 📦 +100 وتجنّب 💣 −50. الضغط على فتحة فاضية −30. عندك 30 ثانية — حاول تعدّي 4000 نقطة!");
+});
 </script>
 </body>
 </html>
