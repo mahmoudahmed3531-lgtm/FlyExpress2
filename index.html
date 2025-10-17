@@ -16,8 +16,8 @@
     --pad-max: 16px;
     --brand: #8a5cf6;
     --accent: #00ffae;
-    --danger: #ff4d7a;
     --muted: #9fb2c7;
+    --danger:#ff4d7a;
   }
 
   *{box-sizing:border-box}
@@ -47,27 +47,13 @@
   }
 
   header{padding:18px 18px 6px}
-  header h1{
-    margin:0 0 6px;
-    font-size: clamp(24px, 6vw, 38px);
-    font-weight: 900;
-    letter-spacing:.2px;
-  }
+  header h1{margin:0 0 6px; font-size:clamp(24px, 6vw, 38px); font-weight:900}
   header h1 .fx{color:var(--brand)}
-  header p{
-    margin:6px 0 0;
-    color:var(--muted);
-    font-weight:700;
-    font-size: clamp(13px, 3.4vw, 16px);
-  }
+  header p{margin:6px 0 0; color:var(--muted); font-weight:700; font-size:clamp(13px,3.4vw,16px)}
 
   .stats{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding:12px 14px 0}
-  .stat{
-    background: rgba(0,0,0,.22);
-    border:1px solid rgba(255,255,255,.06);
-    border-radius:16px; padding:12px; text-align:center;
-  }
-  .stat .v{font-size: clamp(20px,5.8vw,28px); font-weight:900}
+  .stat{background: rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:12px; text-align:center}
+  .stat .v{font-size:clamp(20px,5.8vw,28px); font-weight:900}
   .stat .k{font-size:12px; color:var(--muted); margin-top:4px}
 
   .game-wrap{max-width:var(--wrap-max); margin-inline:auto; padding:12px 14px 18px}
@@ -92,47 +78,45 @@
     border:1px solid rgba(255,255,255,.05);
     overflow:hidden;
   }
+
+  /* عناصر اللعبة */
   .item{
     position:absolute; inset:8%;
     border-radius:14px;
-    display:flex; align-items:center; justify-content:center; text-align:center;
-    font-weight:900;
-    letter-spacing:.3px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    font-weight:900; letter-spacing:.3px;
     box-shadow:0 10px 24px rgba(0,0,0,.35);
-    user-select:none;
-    -webkit-tap-highlight-color: transparent;
+    user-select:none; -webkit-tap-highlight-color: transparent;
+    animation: pop-in .18s ease-out both;
   }
   .parcel{ background:linear-gradient(180deg,#1cc5a6,#0aa07f); color:#032c27; }
   .bomb  { background:linear-gradient(180deg,#ff6a95,#ff316b); color:#2e0713; }
   .bonus { background:linear-gradient(180deg,#53a6ff,#1d7cff); color:#041a33; }
 
-  .item .emoji{font-size: clamp(22px, 8vw, 28px)}
-  .item .pts  {font-size: clamp(12px, 3.8vw, 14px); opacity:.85}
+  .item .emoji{font-size:clamp(22px, 8vw, 28px)}
+  .item .pts  {font-size:clamp(12px, 3.8vw, 14px); opacity:.85}
+
+  /* انيميشن الطلوع/النزول */
+  @keyframes pop-in   { from{ transform:translateY(18px) scale(.92); opacity:.0 } to{ transform:translateY(0) scale(1); opacity:1 } }
+  @keyframes pop-out  { from{ transform:translateY(0) scale(1);   opacity:1 }   to{ transform:translateY(18px) scale(.92); opacity:.0 } }
+  .pop-out{ animation: pop-out .16s ease-in forwards }
 
   .controls{display:flex; gap:10px; justify-content:center; padding:8px 14px 18px}
-  .btn{
-    border:none; cursor:pointer; font-weight:900;
-    color:#051016; background:linear-gradient(90deg,#ff73e1,#ffb5e8);
-    padding: clamp(10px, 2.8vw, 14px) clamp(16px, 4vw, 22px);
-    border-radius:18px; box-shadow:0 10px 26px rgba(0,0,0,.35);
-  }
+  .btn{border:none; cursor:pointer; font-weight:900; color:#051016; background:linear-gradient(90deg,#ff73e1,#ffb5e8);
+       padding:clamp(10px,2.8vw,14px) clamp(16px,4vw,22px); border-radius:18px; box-shadow:0 10px 26px rgba(0,0,0,.35)}
   .btn.secondary{background:linear-gradient(90deg,#bfffe9,#8bf7d4)}
   .btn:disabled{opacity:.6; cursor:not-allowed}
 
   .goal{padding:0 14px 18px; text-align:center; color:var(--muted); font-weight:800}
   .goal strong{color:#fff}
 
-  .toast{
-    margin: 8px auto 16px; max-width:var(--wrap-max);
-    text-align:center; font-weight:900;
-    color:#ffd1dc; display:none;
-  }
+  .toast{margin:8px auto 16px; max-width:var(--wrap-max); text-align:center; font-weight:900; color:#ffd1dc; display:none}
   .toast.show{display:block}
 
   footer{padding:14px; text-align:center; color:#9fb2c7; font-size:12px}
 
   @media (max-width:340px){
-    :root{ --board-min: 220px; }
+    :root{ --board-min: 220px }
     .cell{ border-radius:14px }
   }
 </style>
@@ -154,7 +138,6 @@
 
     <div class="game-wrap">
       <div class="board" id="board">
-        <!-- 9 خلايا -->
         <div class="cell"></div><div class="cell"></div><div class="cell"></div>
         <div class="cell"></div><div class="cell"></div><div class="cell"></div>
         <div class="cell"></div><div class="cell"></div><div class="cell"></div>
@@ -174,7 +157,7 @@
 </div>
 
 <script>
-  // العناصر
+  // عناصر DOM
   const board   = document.getElementById('board');
   const cells   = Array.from(board.querySelectorAll('.cell'));
   const startBtn= document.getElementById('startBtn');
@@ -184,7 +167,7 @@
   const bestEl  = document.getElementById('best');
   const toast   = document.getElementById('toast');
 
-  // الحالة
+  // حالة اللعبة
   let running = false;
   let timeLeft = 30;
   let score = 0;
@@ -192,24 +175,21 @@
   bestEl.textContent = best.toString();
 
   // تايمرز
-  let tickTimer = null;   // لكل ثانية
-  let spawnTimer = null;  // لظهور العناصر
-  let difficultyTimer = null; // لزيادة الصعوبة
+  let tickTimer = null;
+  let spawnTimer = null;
+  let difficultyTimer = null;
 
-  // إعدادات الصعوبة
-  let spawnInterval = 650;       // كل كم ملّي ثانية نحدّث الأهداف (أقل = أصعب)
-  let itemLifetime  = 900;       // كم ملّي ثانية يختفي بعدها الهدف لو متضغطش
-  let maxActive     = 3;         // أقصى عدد عناصر مرئية في نفس اللحظة
+  // صعوبة (زي النسخة اللي عجبتك) + responsive sizing من النسخة الأخيرة
+  let spawnInterval = 650;  // سرعتها تزيد تدريجياً
+  let itemLifetime  = 900;  // أقل = أصعب
+  let maxActive     = 3;    // يزيد تدريجياً لحد 5
   const goalScore   = 4000;
 
-  // قفل/فتح الخلايا أثناء الأنيميشن القصير
-  const hitCooldown = 180; // ms
+  const hitCooldown = 180; // منع الدبل-تاب سريع
 
-  // وظائف مساعدة
   const rpick = arr => arr[Math.floor(Math.random()*arr.length)];
   const nowms = () => performance.now();
 
-  // إظهار رسالة
   function showToast(msg, color='#ffd1dc'){
     toast.textContent = msg;
     toast.style.color = color;
@@ -217,179 +197,122 @@
     setTimeout(()=>toast.classList.remove('show'), 1600);
   }
 
-  // تهيئة اللعبة
   function reset(){
-    running = false;
-    timeLeft = 30;
-    score = 0;
-    spawnInterval = 650;
-    itemLifetime  = 900;
-    maxActive = 3;
-    timeEl.textContent = '0';
-    scoreEl.textContent = '0';
-    clearTimers();
-    clearCells();
-    startBtn.disabled = false;
+    running=false; timeLeft=30; score=0;
+    spawnInterval=650; itemLifetime=900; maxActive=3;
+    timeEl.textContent='0'; scoreEl.textContent='0';
+    clearTimers(); clearCells(); startBtn.disabled=false;
   }
+  function clearCells(){ cells.forEach(c=>{ c.innerHTML=''; c.dataset.locked=''; }); }
+  function clearTimers(){ [tickTimer,spawnTimer,difficultyTimer].forEach(t=>t&&clearInterval(t)); tickTimer=spawnTimer=difficultyTimer=null; }
 
-  // تنظيف العناصر
-  function clearCells(){
-    cells.forEach(c=>{
-      c.innerHTML = '';
-      c.dataset.locked = '';
-    });
-  }
-  function clearTimers(){
-    [tickTimer, spawnTimer, difficultyTimer].forEach(t=>{ if(t) clearInterval(t); });
-    tickTimer=spawnTimer=difficultyTimer=null;
-  }
-
-  // توليد عنصر عشوائي
+  // عنصر جديد + انيميشن الطلوع/النزول
   function createItem(){
-    // أنواع ونِسب: طرد 62%، قنبلة 26%، بونص 12%
-    const roll = Math.random();
-    let kind = 'parcel';
-    if(roll>0.74 && roll<=0.88) kind='bomb';
-    else if(roll>0.88) kind='bonus';
+    const roll=Math.random();
+    let kind='parcel';                        // 62%
+    if(roll>0.74 && roll<=0.88) kind='bomb';  // 14%
+    else if(roll>0.88) kind='bonus';          // 12%
 
-    const el = document.createElement('div');
-    el.className = `item ${kind}`;
+    const el=document.createElement('div');
+    el.className=`item ${kind}`;
     el.innerHTML = kind==='parcel'
-      ? `<div><div class="emoji">📦</div><div class="pts">+100</div></div>`
+      ? `<div class="emoji">📦</div><div class="pts">+100</div>`
       : kind==='bomb'
-        ? `<div><div class="emoji">💣</div><div class="pts">−50</div></div>`
-        : `<div><div class="emoji">⚡️</div><div class="pts">+150</div></div>`;
+        ? `<div class="emoji">💣</div><div class="pts">−50</div>`
+        : `<div class="emoji">⚡️</div><div class="pts">+150</div>`;
+    el.dataset.kind=kind;
+    el.dataset.born=nowms();
 
-    el.dataset.kind = kind;
-    el.dataset.born = nowms();
-
-    // لمس/نقر: منع تكرار الحسابة
-    let tapped = false;
-    const onTap = (ev)=>{
+    let tapped=false;
+    const onTap=(ev)=>{
       ev.stopPropagation();
-      if(tapped) return;
-      tapped = true;
+      if(tapped) return; tapped=true;
+      const parent=el.parentElement; parent.dataset.locked='1';
 
-      // قفل الخلية لحظيًا لتجنب double tap
-      const parent = el.parentElement;
-      parent.dataset.locked = '1';
+      if(kind==='parcel') score+=100;
+      else if(kind==='bomb') score-=50;
+      else score+=150;
 
-      if(kind==='parcel')      score += 100;
-      else if(kind==='bomb')   score -= 50;
-      else                     score += 150;
-
-      scoreEl.textContent = score.toString();
-
-      // فلاش بسيط
-      el.style.transform='scale(.9)';
-      el.style.filter='brightness(1.15)';
-      setTimeout(()=>{ if(el.parentElement) el.parentElement.removeChild(el); parent.dataset.locked=''; }, hitCooldown);
+      scoreEl.textContent=String(score);
+      // انيميشن خروج
+      el.classList.add('pop-out');
+      setTimeout(()=>{ if(parent && el.parentElement===parent) parent.removeChild(el); parent.dataset.locked=''; }, hitCooldown);
     };
-
     el.addEventListener('click', onTap, {passive:true});
     el.addEventListener('touchstart', onTap, {passive:true});
-
     return el;
   }
 
-  // كم عنصر ظاهر حاليًا؟
-  function activeCount(){
-    return cells.reduce((acc,c)=> acc + (c.firstElementChild?1:0), 0);
-  }
+  function activeCount(){ return cells.reduce((a,c)=>a+(c.firstElementChild?1:0),0); }
 
-  // سبون/إخفاء دوري
   function loopSpawn(){
     if(!running) return;
-    // إزالة العناصر القديمة (انتهى عمرها)
-    const t = nowms();
+    const t=nowms();
+    // اخفاء العناصر المنتهية بعمرها بانيميشن نزول
     cells.forEach(c=>{
-      const it = c.firstElementChild;
+      const it=c.firstElementChild;
       if(!it) return;
-      const born = Number(it.dataset.born||t);
-      if(t - born > itemLifetime){
-        // لمسة على فراغ: حافز صغير يخليها تختفي أسرع لو ضغط على الخانة الفاضية
-        c.addEventListener('click', ()=>{ if(c.firstElementChild===it) c.removeChild(it); }, {once:true, passive:true});
-        c.removeChild(it);
+      const born=Number(it.dataset.born||t);
+      if(t-born>itemLifetime){
+        it.classList.add('pop-out');
+        setTimeout(()=>{ if(c.firstElementChild===it) c.removeChild(it); }, 150);
       }
     });
-
-    // لو تحت الحد، أضف عناصر جديدة
-    const room = Math.max(0, maxActive - activeCount());
+    // إضافة عناصر حتى الحد الأقصى
+    const room=Math.max(0, maxActive - activeCount());
     for(let i=0;i<room;i++){
-      const emptyCells = cells.filter(c => !c.firstElementChild && !c.dataset.locked);
-      if(!emptyCells.length) break;
-      const slot = rpick(emptyCells);
-      slot.appendChild(createItem());
+      const empty=cells.filter(c=>!c.firstElementChild && !c.dataset.locked);
+      if(!empty.length) break;
+      rpick(empty).appendChild(createItem());
     }
   }
 
-  // زيادة الصعوبة تدريجيًا
-  function bumpDifficulty(){
-    // كل 5 ثواني: أسرع + أعمار أقصر + احتمال عناصر أكثر معًا
-    spawnInterval = Math.max(360, spawnInterval - 40);
-    itemLifetime  = Math.max(550, itemLifetime - 35);
-    if(maxActive < 5) maxActive += 1;
-
-    // تحديث الجدول الزمني لسبون
-    if(spawnTimer) clearInterval(spawnTimer);
-    spawnTimer = setInterval(loopSpawn, spawnInterval);
-  }
-
-  // العدّاد
-  function tick(){
-    if(!running) return;
-    timeLeft--;
-    timeEl.textContent = timeLeft.toString();
-    if(timeLeft<=0){
-      endGame();
-    }
-  }
-
-  // نهاية الجولة
-  function endGame(){
-    running=false;
-    clearTimers();
-    clearCells();
-    startBtn.disabled = false;
-
-    if(score > best){
-      best = score;
-      localStorage.setItem('fx_best', String(best));
-      bestEl.textContent = best.toString();
-    }
-
-    if(score >= goalScore){
-      showToast(`🎉 جامد! عدّيت الهدف (${goalScore}+). نتيجتك: ${score}`, '#9effc7');
-    }else{
-      showToast(`انتهى الوقت! درجتك: ${score} — معلش حاول تاني يمكن تكسب 😂`, '#ffd1dc');
-    }
-  }
-
-  // بدء اللعبة
-  function start(){
-    reset();
-    running = true;
-    startBtn.disabled = true;
-
-    timeLeft = 30;
-    timeEl.textContent = timeLeft.toString();
-    score = 0;
-    scoreEl.textContent = '0';
-
-    // مبدئيًا سبون
-    loopSpawn();
-    spawnTimer = setInterval(loopSpawn, spawnInterval);
-    tickTimer  = setInterval(tick, 1000);
-    difficultyTimer = setInterval(bumpDifficulty, 5000);
-  }
-
-  // أحداث
-  startBtn.addEventListener('click', start);
-  howBtn.addEventListener('click', ()=>{
-    showToast('📌 الطرد +100، القنبلة −50، البونص +150 — الهدف 4000+', '#bfe9ff');
+  // ضغط على فتحة فاضية = يخفي اللي فيها أسرع (سلوك النسخة السابقة)
+  cells.forEach(c=>{
+    c.addEventListener('click', ()=>{
+      if(!running) return;
+      const it=c.firstElementChild;
+      if(it){
+        it.classList.add('pop-out');
+        setTimeout(()=>{ if(c.firstElementChild===it) c.removeChild(it); }, 120);
+      }
+    }, {passive:true});
   });
 
-  // جاهزية أولية
+  function bumpDifficulty(){
+    spawnInterval=Math.max(360, spawnInterval-40);
+    itemLifetime =Math.max(550, itemLifetime-35);
+    if(maxActive<5) maxActive+=1;
+    if(spawnTimer) clearInterval(spawnTimer);
+    spawnTimer=setInterval(loopSpawn, spawnInterval);
+  }
+
+  function tick(){
+    if(!running) return;
+    timeLeft--; timeEl.textContent=String(timeLeft);
+    if(timeLeft<=0) endGame();
+  }
+
+  function endGame(){
+    running=false; clearTimers(); clearCells(); startBtn.disabled=false;
+    if(score>best){ best=score; localStorage.setItem('fx_best', String(best)); bestEl.textContent=String(best); }
+    if(score>=goalScore) showToast(`🎉 جامد! عدّيت الهدف (${goalScore}+). نتيجتك: ${score}`, '#9effc7');
+    else showToast(`انتهى الوقت! درجتك: ${score} — معلش حاول تاني يمكن تكسب 😂`, '#ffd1dc');
+  }
+
+  function start(){
+    reset();
+    running=true; startBtn.disabled=true;
+    timeLeft=30; timeEl.textContent='30'; score=0; scoreEl.textContent='0';
+    loopSpawn();
+    spawnTimer=setInterval(loopSpawn, spawnInterval);
+    tickTimer=setInterval(tick,1000);
+    difficultyTimer=setInterval(bumpDifficulty,5000);
+  }
+
+  startBtn.addEventListener('click', start);
+  howBtn.addEventListener('click', ()=> showToast('📌 الطرد +100، القنبلة −50، البونص +150 — الهدف 4000+', '#bfe9ff'));
+
   reset();
 </script>
 </body>
